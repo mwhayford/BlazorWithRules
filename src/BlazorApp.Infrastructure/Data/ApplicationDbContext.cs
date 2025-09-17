@@ -12,9 +12,8 @@ public class ApplicationDbContext : DbContext
     /// Initializes a new instance of the ApplicationDbContext
     /// </summary>
     /// <param name="options">Database context options</param>
-    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
-    {
-    }
+    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
+        : base(options) { }
 
     /// <summary>
     /// Users DbSet
@@ -49,15 +48,16 @@ public class ApplicationDbContext : DbContext
             entity.Property(e => e.LastName).IsRequired().HasMaxLength(50);
             entity.Property(e => e.Role).HasDefaultValue("User");
             entity.Property(e => e.IsActive).HasDefaultValue(true);
-            
+
             // Global query filter for soft delete
             entity.HasQueryFilter(e => !e.IsDeleted);
 
             // Configure relationship with Orders
-            entity.HasMany(e => e.Orders)
-                  .WithOne(e => e.User)
-                  .HasForeignKey(e => e.UserId)
-                  .OnDelete(DeleteBehavior.Restrict);
+            entity
+                .HasMany(e => e.Orders)
+                .WithOne(e => e.User)
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         // Configure Order entity
@@ -68,21 +68,23 @@ public class ApplicationDbContext : DbContext
             entity.Property(e => e.OrderNumber).IsRequired().HasMaxLength(50);
             entity.Property(e => e.TotalAmount).HasPrecision(18, 2);
             entity.Property(e => e.Status).HasDefaultValue("Pending");
-            
+
             // Global query filter for soft delete
             entity.HasQueryFilter(e => !e.IsDeleted);
 
             // Configure relationship with User
-            entity.HasOne(e => e.User)
-                  .WithMany(e => e.Orders)
-                  .HasForeignKey(e => e.UserId)
-                  .OnDelete(DeleteBehavior.Restrict);
+            entity
+                .HasOne(e => e.User)
+                .WithMany(e => e.Orders)
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             // Configure relationship with OrderItems
-            entity.HasMany(e => e.OrderItems)
-                  .WithOne(e => e.Order)
-                  .HasForeignKey(e => e.OrderId)
-                  .OnDelete(DeleteBehavior.Cascade);
+            entity
+                .HasMany(e => e.OrderItems)
+                .WithOne(e => e.Order)
+                .HasForeignKey(e => e.OrderId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         // Configure OrderItem entity
@@ -94,15 +96,16 @@ public class ApplicationDbContext : DbContext
             entity.Property(e => e.TotalPrice).HasPrecision(18, 2);
             entity.Property(e => e.DiscountAmount).HasPrecision(18, 2).HasDefaultValue(0);
             entity.Property(e => e.TaxAmount).HasPrecision(18, 2).HasDefaultValue(0);
-            
+
             // Global query filter for soft delete
             entity.HasQueryFilter(e => !e.IsDeleted);
 
             // Configure relationship with Order
-            entity.HasOne(e => e.Order)
-                  .WithMany(e => e.OrderItems)
-                  .HasForeignKey(e => e.OrderId)
-                  .OnDelete(DeleteBehavior.Cascade);
+            entity
+                .HasOne(e => e.Order)
+                .WithMany(e => e.OrderItems)
+                .HasForeignKey(e => e.OrderId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         // Apply configurations from assemblies
@@ -153,7 +156,7 @@ public class ApplicationDbContext : DbContext
                 case EntityState.Modified:
                     entry.Entity.UpdatedAt = currentTime;
                     entry.Entity.UpdatedBy = currentUser;
-                    
+
                     // If this is a soft delete
                     if (entry.Entity.IsDeleted && entry.Entity.DeletedAt == null)
                     {

@@ -1,0 +1,20 @@
+<Project>
+  <PropertyGroup>
+    <!-- Common properties for all projects -->
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <WarningsAsErrors />
+    <WarningsNotAsErrors />
+    <!-- StyleCop configuration -->
+    <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)stylecop.ruleset</CodeAnalysisRuleSet>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <!-- Enable StyleCop analyzers -->
+    <EnableStyleCopAnalyzers>true</EnableStyleCopAnalyzers>
+    <!-- Disable specific StyleCop rules that are handled by CSharpier or too strict for this project -->
+    <NoWarn>$(NoWarn);SA1101;SA1633;SA1652;SA1412;CS1591;SA1309;SA1401;SA1502;SA1503;SA1111;SA1009;SA1513;SA1516;SA1202;SA1203;SA1204;SA1206;SA1000;SA1305;SA1201;SA1108;SA1515</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <AdditionalFiles Include="$(MSBuildThisFileDirectory)stylecop.json" />
+  </ItemGroup>
+</Project>

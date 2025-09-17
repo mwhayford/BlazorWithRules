@@ -1,0 +1,56 @@
+{
+  "name": "blazorwithrules",
+  "version": "1.0.0",
+  "description": "A modern Blazor Web Application built with .NET 9, featuring clean architecture, comprehensive testing, and Azure deployment capabilities.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepare": "husky",
+    "lint": "eslint . --fix",
+    "format": "prettier --write .",
+    "lint:check": "eslint .",
+    "format:check": "prettier --check .",
+    "csharpier": "csharpier check .",
+    "csharpier:write": "csharpier format .",
+    "dotnet:format": "dotnet format",
+    "dotnet:build": "dotnet build --configuration Release --verbosity minimal",
+    "pre-commit": "lint-staged"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mwhayford/BlazorWithRules.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mwhayford/BlazorWithRules/issues"
+  },
+  "homepage": "https://github.com/mwhayford/BlazorWithRules#readme",
+  "devDependencies": {
+    "@eslint/js": "^9.35.0",
+    "eslint": "^9.35.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.1.6",
+    "prettier": "^3.6.2"
+  },
+  "lint-staged": {
+    "*.{js,mjs}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{css,json,md}": [
+      "prettier --write"
+    ],
+    "*.cs": [
+      "csharpier format"
+    ],
+    "*.{csproj,sln}": [
+      "dotnet format --include"
+    ]
+  }
+}

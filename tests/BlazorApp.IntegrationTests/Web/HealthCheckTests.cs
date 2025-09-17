@@ -1,7 +1,7 @@
-using BlazorApp.IntegrationTests.Common;
-using FluentAssertions;
 using System.Net;
 using System.Text.Json;
+using BlazorApp.IntegrationTests.Common;
+using FluentAssertions;
 
 namespace BlazorApp.IntegrationTests.Web;
 
@@ -27,7 +27,7 @@ public class HealthCheckTests : IClassFixture<CustomWebApplicationFactory<Progra
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        
+
         var content = await response.Content.ReadAsStringAsync();
         content.Should().Contain("Healthy");
     }
@@ -40,7 +40,7 @@ public class HealthCheckTests : IClassFixture<CustomWebApplicationFactory<Progra
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        
+
         var content = await response.Content.ReadAsStringAsync();
         content.Should().Contain("Health Checks UI");
     }
@@ -53,10 +53,10 @@ public class HealthCheckTests : IClassFixture<CustomWebApplicationFactory<Progra
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        
+
         var content = await response.Content.ReadAsStringAsync();
         var healthReport = JsonSerializer.Deserialize<HealthCheckResponse>(content);
-        
+
         healthReport.Should().NotBeNull();
         healthReport!.Status.Should().Be("Healthy");
         healthReport.Entries.Should().ContainKey("database");
@@ -71,7 +71,7 @@ public class HealthCheckTests : IClassFixture<CustomWebApplicationFactory<Progra
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        
+
         var content = await response.Content.ReadAsStringAsync();
         content.Should().Contain("Dashboard"); // Assuming Dashboard is the home page
     }
@@ -98,7 +98,7 @@ public class HealthCheckTests : IClassFixture<CustomWebApplicationFactory<Progra
         response.Headers.Should().ContainKey("X-Content-Type-Options");
         response.Headers.Should().ContainKey("X-XSS-Protection");
         response.Headers.Should().ContainKey("Referrer-Policy");
-        
+
         response.Headers.GetValues("X-Frame-Options").Should().Contain("DENY");
         response.Headers.GetValues("X-Content-Type-Options").Should().Contain("nosniff");
     }
@@ -111,7 +111,7 @@ public class HealthCheckTests : IClassFixture<CustomWebApplicationFactory<Progra
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
-        
+
         var content = await response.Content.ReadAsStringAsync();
         content.Should().Contain("404"); // Should show custom 404 page
     }

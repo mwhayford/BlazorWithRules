@@ -1,10 +1,10 @@
+using AutoFixture;
 using BlazorApp.Core.Entities;
 using BlazorApp.Infrastructure.Data;
 using BlazorApp.Infrastructure.Repositories;
 using BlazorApp.IntegrationTests.Common;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
-using AutoFixture;
 
 namespace BlazorApp.IntegrationTests.Repositories;
 
@@ -17,15 +17,15 @@ public class UserRepositoryTests : DatabaseIntegrationTestBase
     private readonly ApplicationDbContext _context;
     private readonly IFixture _fixture;
 
-    public UserRepositoryTests(DatabaseTestFixture databaseFixture) : base(databaseFixture)
+    public UserRepositoryTests(DatabaseTestFixture databaseFixture)
+        : base(databaseFixture)
     {
         _context = GetService<ApplicationDbContext>();
         _userRepository = new UserRepository(_context);
         _fixture = new Fixture();
-        
+
         // Configure AutoFixture
-        _fixture.Behaviors.OfType<ThrowingRecursionBehavior>().ToList()
-            .ForEach(b => _fixture.Behaviors.Remove(b));
+        _fixture.Behaviors.OfType<ThrowingRecursionBehavior>().ToList().ForEach(b => _fixture.Behaviors.Remove(b));
         _fixture.Behaviors.Add(new OmitOnRecursionBehavior());
     }
 
@@ -33,10 +33,7 @@ public class UserRepositoryTests : DatabaseIntegrationTestBase
     public async Task AddAsync_ShouldAddUser_WhenUserIsValid()
     {
         // Arrange
-        var user = _fixture.Build<User>()
-            .Without(x => x.Id)
-            .With(x => x.Email, "test@example.com")
-            .Create();
+        var user = _fixture.Build<User>().Without(x => x.Id).With(x => x.Email, "test@example.com").Create();
 
         // Act
         var result = await _userRepository.AddAsync(user);
@@ -51,7 +48,7 @@ public class UserRepositoryTests : DatabaseIntegrationTestBase
         var savedUser = await _context.Users.FindAsync(result.Id);
         savedUser.Should().NotBeNull();
         savedUser!.Email.Should().Be("test@example.com");
-        
+
         // Cleanup
         await CleanupDatabaseAsync();
     }
@@ -60,10 +57,7 @@ public class UserRepositoryTests : DatabaseIntegrationTestBase
     public async Task GetByIdAsync_ShouldReturnUser_WhenUserExists()
     {
         // Arrange
-        var user = _fixture.Build<User>()
-            .Without(x => x.Id)
-            .With(x => x.Email, "getbyid@example.com")
-            .Create();
+        var user = _fixture.Build<User>().Without(x => x.Id).With(x => x.Email, "getbyid@example.com").Create();
 
         var savedUser = await _userRepository.AddAsync(user);
 
@@ -74,7 +68,7 @@ public class UserRepositoryTests : DatabaseIntegrationTestBase
         result.Should().NotBeNull();
         result!.Id.Should().Be(savedUser.Id);
         result.Email.Should().Be("getbyid@example.com");
-        
+
         // Cleanup
         await CleanupDatabaseAsync();
     }
@@ -97,10 +91,7 @@ public class UserRepositoryTests : DatabaseIntegrationTestBase
     {
         // Arrange
         var email = "getbyemail@example.com";
-        var user = _fixture.Build<User>()
-            .Without(x => x.Id)
-            .With(x => x.Email, email)
-            .Create();
+        var user = _fixture.Build<User>().Without(x => x.Id).With(x => x.Email, email).Create();
 
         await _userRepository.AddAsync(user);
 
@@ -110,7 +101,7 @@ public class UserRepositoryTests : DatabaseIntegrationTestBase
         // Assert
         result.Should().NotBeNull();
         result!.Email.Should().Be(email);
-        
+
         // Cleanup
         await CleanupDatabaseAsync();
     }
@@ -132,17 +123,10 @@ public class UserRepositoryTests : DatabaseIntegrationTestBase
     public async Task GetAllAsync_ShouldReturnAllActiveUsers()
     {
         // Arrange
-        var users = _fixture.Build<User>()
-            .Without(x => x.Id)
-            .With(x => x.IsDeleted, false)
-            .CreateMany(3)
-            .ToList();
+        var users = _fixture.Build<User>().Without(x => x.Id).With(x => x.IsDeleted, false).CreateMany(3).ToList();
 
         // Add a deleted user that should not be returned
-        var deletedUser = _fixture.Build<User>()
-            .Without(x => x.Id)
-            .With(x => x.IsDeleted, true)
-            .Create();
+        var deletedUser = _fixture.Build<User>().Without(x => x.Id).With(x => x.IsDeleted, true).Create();
 
         foreach (var user in users)
         {
@@ -156,7 +140,7 @@ public class UserRepositoryTests : DatabaseIntegrationTestBase
         // Assert
         result.Should().HaveCount(3);
         result.Should().OnlyContain(u => !u.IsDeleted);
-        
+
         // Cleanup
         await CleanupDatabaseAsync();
     }
@@ -165,14 +149,15 @@ public class UserRepositoryTests : DatabaseIntegrationTestBase
     public async Task UpdateAsync_ShouldUpdateUser_WhenUserExists()
     {
         // Arrange
-        var user = _fixture.Build<User>()
+        var user = _fixture
+            .Build<User>()
             .Without(x => x.Id)
             .With(x => x.Email, "update@example.com")
             .With(x => x.FirstName, "Original")
             .Create();
 
         var savedUser = await _userRepository.AddAsync(user);
-        
+
         // Modify the user
         savedUser.FirstName = "Updated";
         savedUser.LastName = "NewLastName";
@@ -190,7 +175,7 @@ public class UserRepositoryTests : DatabaseIntegrationTestBase
         var updatedUser = await _context.Users.FindAsync(savedUser.Id);
         updatedUser!.FirstName.Should().Be("Updated");
         updatedUser.LastName.Should().Be("NewLastName");
-        
+
         // Cleanup
         await CleanupDatabaseAsync();
     }
@@ -199,10 +184,7 @@ public class UserRepositoryTests : DatabaseIntegrationTestBase
     public async Task DeleteAsync_ShouldSoftDeleteUser_WhenUserExists()
     {
         // Arrange
-        var user = _fixture.Build<User>()
-            .Without(x => x.Id)
-            .With(x => x.Email, "delete@example.com")
-            .Create();
+        var user = _fixture.Build<User>().Without(x => x.Id).With(x => x.Email, "delete@example.com").Create();
 
         var savedUser = await _userRepository.AddAsync(user);
 
@@ -220,7 +202,7 @@ public class UserRepositoryTests : DatabaseIntegrationTestBase
         // Verify user is not returned by normal queries
         var userFromRepo = await _userRepository.GetByIdAsync(savedUser.Id);
         userFromRepo.Should().BeNull();
-        
+
         // Cleanup
         await CleanupDatabaseAsync();
     }
@@ -242,17 +224,10 @@ public class UserRepositoryTests : DatabaseIntegrationTestBase
     public async Task CountAsync_ShouldReturnCorrectCount()
     {
         // Arrange
-        var users = _fixture.Build<User>()
-            .Without(x => x.Id)
-            .With(x => x.IsDeleted, false)
-            .CreateMany(5)
-            .ToList();
+        var users = _fixture.Build<User>().Without(x => x.Id).With(x => x.IsDeleted, false).CreateMany(5).ToList();
 
         // Add a deleted user that should not be counted
-        var deletedUser = _fixture.Build<User>()
-            .Without(x => x.Id)
-            .With(x => x.IsDeleted, true)
-            .Create();
+        var deletedUser = _fixture.Build<User>().Without(x => x.Id).With(x => x.IsDeleted, true).Create();
 
         foreach (var user in users)
         {
@@ -265,7 +240,7 @@ public class UserRepositoryTests : DatabaseIntegrationTestBase
 
         // Assert
         result.Should().Be(5); // Only non-deleted users
-        
+
         // Cleanup
         await CleanupDatabaseAsync();
     }
@@ -276,21 +251,24 @@ public class UserRepositoryTests : DatabaseIntegrationTestBase
         // Arrange
         var users = new[]
         {
-            _fixture.Build<User>()
+            _fixture
+                .Build<User>()
                 .Without(x => x.Id)
                 .With(x => x.FirstName, "John")
                 .With(x => x.IsActive, true)
                 .Create(),
-            _fixture.Build<User>()
+            _fixture
+                .Build<User>()
                 .Without(x => x.Id)
                 .With(x => x.FirstName, "Jane")
                 .With(x => x.IsActive, true)
                 .Create(),
-            _fixture.Build<User>()
+            _fixture
+                .Build<User>()
                 .Without(x => x.Id)
                 .With(x => x.FirstName, "Bob")
                 .With(x => x.IsActive, false)
-                .Create()
+                .Create(),
         };
 
         foreach (var user in users)
@@ -306,7 +284,7 @@ public class UserRepositoryTests : DatabaseIntegrationTestBase
         result.Should().OnlyContain(u => u.IsActive);
         result.Should().Contain(u => u.FirstName == "John");
         result.Should().Contain(u => u.FirstName == "Jane");
-        
+
         // Cleanup
         await CleanupDatabaseAsync();
     }
