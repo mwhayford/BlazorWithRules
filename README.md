@@ -43,31 +43,35 @@ BlazorWithRules/
 ### Getting Started
 
 1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd BlazorWithRules
-   ```
+
+    ```bash
+    git clone <repository-url>
+    cd BlazorWithRules
+    ```
 
 2. **Restore dependencies**
-   ```bash
-   dotnet restore
-   ```
+
+    ```bash
+    dotnet restore
+    ```
 
 3. **Build the solution**
-   ```bash
-   dotnet build
-   ```
+
+    ```bash
+    dotnet build
+    ```
 
 4. **Run the application**
-   ```bash
-   cd src/BlazorApp.Web
-   dotnet run
-   ```
+
+    ```bash
+    cd src/BlazorApp.Web
+    dotnet run
+    ```
 
 5. **Run tests**
-   ```bash
-   dotnet test
-   ```
+    ```bash
+    dotnet test
+    ```
 
 ## 🧪 Testing Strategy
 
@@ -99,20 +103,22 @@ The application uses the standard ASP.NET Core configuration system:
 ### Azure Deployment
 
 1. **Setup Azure Resources**
-   ```bash
-   az group create --name rg-blazorapp --location eastus
-   ```
+
+    ```bash
+    az group create --name rg-blazorapp --location eastus
+    ```
 
 2. **Deploy Infrastructure**
-   ```bash
-   az deployment group create --resource-group rg-blazorapp --template-file infrastructure/azure/main.json
-   ```
+
+    ```bash
+    az deployment group create --resource-group rg-blazorapp --template-file infrastructure/azure/main.json
+    ```
 
 3. **Deploy Application**
-   ```bash
-   dotnet publish -c Release
-   az webapp deployment source config-zip --resource-group rg-blazorapp --name blazorapp --src publish.zip
-   ```
+    ```bash
+    dotnet publish -c Release
+    az webapp deployment source config-zip --resource-group rg-blazorapp --name blazorapp --src publish.zip
+    ```
 
 ## 📈 Monitoring
 

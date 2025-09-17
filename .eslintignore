@@ -1,0 +1,23 @@
+# Third-party libraries and vendor files
+src/BlazorApp.Web/wwwroot/lib/**
+node_modules/
+*.min.js
+*.min.css
+
+# Build output directories
+**/bin/
+**/obj/
+**/dist/
+**/build/
+
+# Package manager files
+package-lock.json
+*.lock
+
+# IDE and system files
+.vs/
+.vscode/
+*.suo
+*.user
+.DS_Store
+Thumbs.db

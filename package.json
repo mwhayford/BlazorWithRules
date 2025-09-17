@@ -2,6 +2,7 @@
   "name": "blazorwithrules",
   "version": "1.0.0",
   "description": "A modern Blazor Web Application built with .NET 9, featuring clean architecture, comprehensive testing, and Azure deployment capabilities.",
+  "type": "module",
   "main": "index.js",
   "directories": {
     "doc": "docs",

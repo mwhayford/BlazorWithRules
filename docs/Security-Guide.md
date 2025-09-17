@@ -9,12 +9,14 @@
 ### 1. 🛡️ Fix CORS Configuration
 
 **Current Issue**: Overly permissive CORS policy allows all origins
+
 ```csharp
 // ❌ CURRENT - INSECURE
 policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
 ```
 
 **Fix**: Restrict to specific origins
+
 ```csharp
 // ✅ SECURE - Update in Program.cs
 builder.Services.AddCors(options =>
@@ -44,6 +46,7 @@ builder.Services.AddCors(options =>
 ### 2. 🔐 Implement Authentication
 
 **Add JWT Authentication**:
+
 ```csharp
 // Add to BlazorApp.Web.csproj
 <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.0" />
@@ -74,9 +77,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 // Add Authorization
 builder.Services.AddAuthorization(options =>
 {
-    options.AddPolicy("AdminOnly", policy => 
+    options.AddPolicy("AdminOnly", policy =>
         policy.RequireRole("Administrator"));
-    options.AddPolicy("UserOnly", policy => 
+    options.AddPolicy("UserOnly", policy =>
         policy.RequireRole("User", "Administrator"));
 });
 
@@ -93,11 +96,11 @@ builder.Services.Configure<KestrelServerOptions>(options =>
 {
     // Limit request body size to 10MB
     options.Limits.MaxRequestBodySize = 10 * 1024 * 1024;
-    
+
     // Set request timeout
     options.Limits.RequestHeadersTimeout = TimeSpan.FromSeconds(30);
     options.Limits.KeepAliveTimeout = TimeSpan.FromSeconds(120);
-    
+
     // Limit concurrent connections
     options.Limits.MaxConcurrentConnections = 100;
     options.Limits.MaxConcurrentUpgradedConnections = 100;
@@ -124,22 +127,23 @@ app.UseRateLimiter();
 ## Enhanced Security Headers
 
 ### Update Security Headers Middleware
+
 ```csharp
 // Replace existing security headers in Program.cs
 app.Use(async (context, next) =>
 {
     // Prevent clickjacking
     context.Response.Headers["X-Frame-Options"] = "DENY";
-    
+
     // Prevent MIME type sniffing
     context.Response.Headers["X-Content-Type-Options"] = "nosniff";
-    
+
     // Enable XSS protection
     context.Response.Headers["X-XSS-Protection"] = "1; mode=block";
-    
+
     // Referrer policy
     context.Response.Headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
-    
+
     // Enhanced Content Security Policy
     var csp = new StringBuilder();
     csp.Append("default-src 'self'; ");
@@ -151,18 +155,18 @@ app.Use(async (context, next) =>
     csp.Append("frame-ancestors 'none'; ");
     csp.Append("base-uri 'self'; ");
     csp.Append("form-action 'self';");
-    
+
     context.Response.Headers["Content-Security-Policy"] = csp.ToString();
-    
+
     // Additional security headers
     context.Response.Headers["X-Permitted-Cross-Domain-Policies"] = "none";
     context.Response.Headers["Cross-Origin-Embedder-Policy"] = "require-corp";
     context.Response.Headers["Cross-Origin-Opener-Policy"] = "same-origin";
     context.Response.Headers["Cross-Origin-Resource-Policy"] = "same-origin";
-    
+
     // Remove server header
     context.Response.Headers.Remove("Server");
-    
+
     await next();
 });
 ```
@@ -180,7 +184,7 @@ if (!builder.Environment.IsDevelopment())
 {
     var keyVaultName = builder.Configuration["KeyVaultName"];
     var keyVaultUrl = $"https://{keyVaultName}.vault.azure.net/";
-    
+
     builder.Configuration.AddAzureKeyVault(
         new Uri(keyVaultUrl),
         new DefaultAzureCredential());
@@ -188,22 +192,24 @@ if (!builder.Environment.IsDevelopment())
 ```
 
 ### 2. Secure Configuration
+
 ```json
 // appsettings.json - Remove sensitive values
 {
-  "ConnectionStrings": {
-    "DefaultConnection": "{{WILL_BE_REPLACED_BY_KEYVAULT}}"
-  },
-  "Jwt": {
-    "Issuer": "{{FROM_KEYVAULT}}",
-    "Audience": "{{FROM_KEYVAULT}}",
-    "Key": "{{FROM_KEYVAULT}}"
-  },
-  "KeyVaultName": "your-keyvault-name"
+    "ConnectionStrings": {
+        "DefaultConnection": "{{WILL_BE_REPLACED_BY_KEYVAULT}}"
+    },
+    "Jwt": {
+        "Issuer": "{{FROM_KEYVAULT}}",
+        "Audience": "{{FROM_KEYVAULT}}",
+        "Key": "{{FROM_KEYVAULT}}"
+    },
+    "KeyVaultName": "your-keyvault-name"
 }
 ```
 
 ### 3. Environment Variables for Development
+
 ```bash
 # Set in development environment
 export ConnectionStrings__DefaultConnection="Server=(localdb)\\mssqllocaldb;Database=BlazorAppDb_Dev;Trusted_Connection=true"
@@ -215,6 +221,7 @@ export Jwt__Audience="BlazorApp"
 ## Input Validation & Sanitization
 
 ### 1. Enhanced Validation Rules
+
 ```csharp
 // Update UserValidator.cs
 public class UserValidator : AbstractValidator<User>
@@ -237,16 +244,16 @@ public class UserValidator : AbstractValidator<User>
     private bool NotContainSqlKeywords(string input)
     {
         if (string.IsNullOrEmpty(input)) return true;
-        
+
         var sqlKeywords = new[] { "SELECT", "INSERT", "UPDATE", "DELETE", "DROP", "EXEC", "SCRIPT" };
-        return !sqlKeywords.Any(keyword => 
+        return !sqlKeywords.Any(keyword =>
             input.ToUpperInvariant().Contains(keyword));
     }
 
     private bool BeValidEmailDomain(string email)
     {
         if (string.IsNullOrEmpty(email)) return true;
-        
+
         var domain = email.Split('@').LastOrDefault();
         // Add your allowed domains or domain validation logic
         return !string.IsNullOrEmpty(domain);
@@ -255,6 +262,7 @@ public class UserValidator : AbstractValidator<User>
 ```
 
 ### 2. Add Input Sanitization Service
+
 ```csharp
 // Create BlazorApp.Core/Services/IInputSanitizer.cs
 public interface IInputSanitizer
@@ -270,16 +278,16 @@ public class InputSanitizer : IInputSanitizer
     public string SanitizeHtml(string input)
     {
         if (string.IsNullOrEmpty(input)) return input;
-        
+
         // Remove potentially dangerous HTML
-        return Regex.Replace(input, @"<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>", "", 
+        return Regex.Replace(input, @"<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>", "",
             RegexOptions.IgnoreCase);
     }
 
     public string SanitizeForLog(string input)
     {
         if (string.IsNullOrEmpty(input)) return input;
-        
+
         // Remove line breaks and potential log injection
         return input.Replace("\r", "").Replace("\n", "").Replace("\t", " ");
     }
@@ -287,7 +295,7 @@ public class InputSanitizer : IInputSanitizer
     public bool ContainsMaliciousContent(string input)
     {
         if (string.IsNullOrEmpty(input)) return false;
-        
+
         var maliciousPatterns = new[]
         {
             @"<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>",
@@ -299,7 +307,7 @@ public class InputSanitizer : IInputSanitizer
             @"document\.write"
         };
 
-        return maliciousPatterns.Any(pattern => 
+        return maliciousPatterns.Any(pattern =>
             Regex.IsMatch(input, pattern, RegexOptions.IgnoreCase));
     }
 }
@@ -308,6 +316,7 @@ public class InputSanitizer : IInputSanitizer
 ## Logging Security
 
 ### 1. Secure Logging Configuration
+
 ```csharp
 // Update Program.cs Serilog configuration
 Log.Logger = new LoggerConfiguration()
@@ -320,7 +329,7 @@ Log.Logger = new LoggerConfiguration()
     .Enrich.WithMachineName()
     .Enrich.WithProcessId()
     .Enrich.WithThreadId()
-    .Filter.ByExcluding(Matching.WithProperty<string>("RequestPath", path => 
+    .Filter.ByExcluding(Matching.WithProperty<string>("RequestPath", path =>
         path.StartsWith("/health") || path.StartsWith("/_framework")))
     .WriteTo.Console(
         restrictedToMinimumLevel: LogEventLevel.Information,
@@ -336,6 +345,7 @@ Log.Logger = new LoggerConfiguration()
 ```
 
 ### 2. Secure Request Logging
+
 ```csharp
 // Update RequestResponseLoggingMiddleware.cs
 private static async Task<string> ReadRequestBodyAsync(HttpRequest request)
@@ -384,15 +394,16 @@ private static string SanitizeLogData(string data)
 ## Database Security
 
 ### 1. Connection String Security
+
 ```csharp
 // Add to DependencyInjection.cs
 public static IServiceCollection AddInfrastructure(
-    this IServiceCollection services, 
+    this IServiceCollection services,
     IConfiguration configuration)
 {
     // Get connection string securely
     var connectionString = configuration.GetConnectionString("DefaultConnection");
-    
+
     if (string.IsNullOrEmpty(connectionString))
         throw new InvalidOperationException("Database connection string is not configured");
 
@@ -419,38 +430,39 @@ public static IServiceCollection AddInfrastructure(
 ```
 
 ### 2. Add Database Encryption
+
 ```csharp
 // Update BaseEntity.cs for sensitive fields
 public abstract class BaseEntity
 {
     public int Id { get; set; }
-    
+
     [PersonalData] // Mark for GDPR compliance
     public DateTime CreatedAt { get; set; }
-    
+
     // Add encryption for sensitive fields
     private string _encryptedEmail;
-    
+
     [NotMapped]
     public string Email
     {
         get => DecryptValue(_encryptedEmail);
         set => _encryptedEmail = EncryptValue(value);
     }
-    
+
     [Column("EncryptedEmail")]
     public string EncryptedEmailStorage
     {
         get => _encryptedEmail;
         set => _encryptedEmail = value;
     }
-    
+
     private string EncryptValue(string value)
     {
         // Implement AES encryption
         return value; // Placeholder
     }
-    
+
     private string DecryptValue(string encryptedValue)
     {
         // Implement AES decryption
@@ -462,6 +474,7 @@ public abstract class BaseEntity
 ## Security Testing
 
 ### 1. Add Security Tests
+
 ```csharp
 // Create tests/BlazorApp.SecurityTests/SecurityTests.cs
 [Fact]
@@ -486,12 +499,12 @@ public async Task Api_Should_RejectLargePayloads()
     // Test request size limits
     using var factory = new WebApplicationFactory<Program>();
     using var client = factory.CreateClient();
-    
+
     var largeContent = new string('A', 15 * 1024 * 1024); // 15MB
     var content = new StringContent(largeContent, Encoding.UTF8, "application/json");
-    
+
     var response = await client.PostAsync("/api/users", content);
-    
+
     response.StatusCode.Should().Be(HttpStatusCode.RequestEntityTooLarge);
 }
 ```
@@ -499,6 +512,7 @@ public async Task Api_Should_RejectLargePayloads()
 ## Security Monitoring
 
 ### 1. Add Security Event Logging
+
 ```csharp
 // Create BlazorApp.Core/Services/ISecurityAuditService.cs
 public interface ISecurityAuditService
@@ -521,7 +535,7 @@ public class SecurityAuditService : ISecurityAuditService
     {
         _logger.LogWarning("SECURITY_EVENT: {EventType} - User: {UserId} - Details: {Details}",
             eventType, userId ?? "Anonymous", details);
-        
+
         // Send to security monitoring system
         await Task.CompletedTask;
     }
@@ -530,10 +544,10 @@ public class SecurityAuditService : ISecurityAuditService
     {
         var clientIp = context.Connection.RemoteIpAddress?.ToString();
         var userAgent = context.Request.Headers["User-Agent"].ToString();
-        
+
         _logger.LogError("SUSPICIOUS_ACTIVITY: {Activity} - IP: {ClientIp} - UserAgent: {UserAgent}",
             activity, clientIp, userAgent);
-        
+
         await Task.CompletedTask;
     }
 }
@@ -542,6 +556,7 @@ public class SecurityAuditService : ISecurityAuditService
 ## Deployment Security Checklist
 
 ### Pre-Production Checklist
+
 - [ ] Authentication and authorization implemented
 - [ ] CORS properly configured for production domains
 - [ ] All secrets moved to Azure Key Vault
@@ -554,6 +569,7 @@ public class SecurityAuditService : ISecurityAuditService
 - [ ] Dependency vulnerability scan completed
 
 ### Production Monitoring
+
 - [ ] Security event logging configured
 - [ ] Failed authentication monitoring
 - [ ] Suspicious activity alerts
@@ -574,6 +590,6 @@ If you discover a security vulnerability:
 
 ---
 
-*Last Updated: September 17, 2025*  
-*Security Review: Required Monthly*  
-*Next Audit: October 17, 2025*
+_Last Updated: September 17, 2025_  
+_Security Review: Required Monthly_  
+_Next Audit: October 17, 2025_
