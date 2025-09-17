@@ -17,10 +17,9 @@ public abstract class TestBase
     {
         Fixture = new Fixture();
         MockLogger = new Mock<ILogger>();
-        
+
         // Configure AutoFixture to handle circular references
-        Fixture.Behaviors.OfType<ThrowingRecursionBehavior>().ToList()
-            .ForEach(b => Fixture.Behaviors.Remove(b));
+        Fixture.Behaviors.OfType<ThrowingRecursionBehavior>().ToList().ForEach(b => Fixture.Behaviors.Remove(b));
         Fixture.Behaviors.Add(new OmitOnRecursionBehavior());
     }
 
@@ -38,13 +37,16 @@ public abstract class TestBase
     protected void VerifyLogCalled<T>(Mock<ILogger<T>> mockLogger, LogLevel logLevel, Times times)
     {
         mockLogger.Verify(
-            x => x.Log(
-                logLevel,
-                It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => true),
-                It.IsAny<Exception>(),
-                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
-            times);
+            x =>
+                x.Log(
+                    logLevel,
+                    It.IsAny<EventId>(),
+                    It.Is<It.IsAnyType>((v, t) => true),
+                    It.IsAny<Exception>(),
+                    It.IsAny<Func<It.IsAnyType, Exception?, string>>()
+                ),
+            times
+        );
     }
 
     /// <summary>
@@ -53,13 +55,16 @@ public abstract class TestBase
     protected void VerifyLogCalled<T>(Mock<ILogger<T>> mockLogger, LogLevel logLevel, string message, Times times)
     {
         mockLogger.Verify(
-            x => x.Log(
-                logLevel,
-                It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains(message)),
-                It.IsAny<Exception>(),
-                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
-            times);
+            x =>
+                x.Log(
+                    logLevel,
+                    It.IsAny<EventId>(),
+                    It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains(message)),
+                    It.IsAny<Exception>(),
+                    It.IsAny<Func<It.IsAnyType, Exception?, string>>()
+                ),
+            times
+        );
     }
 }
 
@@ -68,19 +73,17 @@ public abstract class TestBase
 /// </summary>
 public class CustomAutoDataAttribute : AutoDataAttribute
 {
-    public CustomAutoDataAttribute() : base(() => CreateFixture())
-    {
-    }
+    public CustomAutoDataAttribute()
+        : base(() => CreateFixture()) { }
 
     private static IFixture CreateFixture()
     {
         var fixture = new Fixture();
-        
+
         // Configure AutoFixture to handle circular references
-        fixture.Behaviors.OfType<ThrowingRecursionBehavior>().ToList()
-            .ForEach(b => fixture.Behaviors.Remove(b));
+        fixture.Behaviors.OfType<ThrowingRecursionBehavior>().ToList().ForEach(b => fixture.Behaviors.Remove(b));
         fixture.Behaviors.Add(new OmitOnRecursionBehavior());
-        
+
         return fixture;
     }
 }
@@ -90,7 +93,6 @@ public class CustomAutoDataAttribute : AutoDataAttribute
 /// </summary>
 public class CustomInlineAutoDataAttribute : InlineAutoDataAttribute
 {
-    public CustomInlineAutoDataAttribute(params object[] values) : base(new CustomAutoDataAttribute(), values)
-    {
-    }
+    public CustomInlineAutoDataAttribute(params object[] values)
+        : base(new CustomAutoDataAttribute(), values) { }
 }

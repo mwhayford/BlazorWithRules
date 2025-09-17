@@ -1,9 +1,9 @@
-using BlazorApp.Web.Components;
-using BlazorApp.Infrastructure;
-using BlazorApp.Web.Middleware;
 using BlazorApp.Core.Interfaces;
 using BlazorApp.Core.Validators;
+using BlazorApp.Infrastructure;
 using BlazorApp.Infrastructure.Services;
+using BlazorApp.Web.Components;
+using BlazorApp.Web.Middleware;
 using FluentValidation;
 using Serilog;
 using Serilog.Events;
@@ -20,12 +20,14 @@ Log.Logger = new LoggerConfiguration()
     .Enrich.WithProcessId()
     .Enrich.WithThreadId()
     .WriteTo.Console(
-        outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {SourceContext}: {Message:lj}{NewLine}{Exception}")
+        outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {SourceContext}: {Message:lj}{NewLine}{Exception}"
+    )
     .WriteTo.File(
         path: "logs/blazorapp-.log",
         rollingInterval: RollingInterval.Day,
         retainedFileCountLimit: 7,
-        outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {SourceContext}: {Message:lj}{NewLine}{Exception}")
+        outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {SourceContext}: {Message:lj}{NewLine}{Exception}"
+    )
     .CreateLogger();
 
 var builder = WebApplication.CreateBuilder(args);
@@ -34,8 +36,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Host.UseSerilog();
 
 // Add services to the container.
-builder.Services.AddRazorComponents()
-    .AddInteractiveServerComponents();
+builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 
 // Add Memory Caching
 builder.Services.AddMemoryCache();
@@ -48,21 +49,17 @@ builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 builder.Services.AddValidatorsFromAssemblyContaining<BlazorApp.Core.Validators.UserValidator>();
 
 // Add Health Checks
-builder.Services.AddHealthChecks()
-    .AddDbContextCheck<BlazorApp.Infrastructure.Data.ApplicationDbContext>();
+builder.Services.AddHealthChecks().AddDbContextCheck<BlazorApp.Infrastructure.Data.ApplicationDbContext>();
 
 // Add Health Checks UI
-builder.Services.AddHealthChecksUI()
-    .AddInMemoryStorage();
+builder.Services.AddHealthChecksUI().AddInMemoryStorage();
 
 // Add CORS
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
     {
-        policy.AllowAnyOrigin()
-              .AllowAnyMethod()
-              .AllowAnyHeader();
+        policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
     });
 });
 
@@ -80,7 +77,7 @@ if (!app.Environment.IsDevelopment())
 {
     // Use custom global exception handler
     app.UseMiddleware<GlobalExceptionMiddleware>();
-    
+
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
@@ -96,17 +93,19 @@ app.UseMiddleware<RequestResponseLoggingMiddleware>();
 app.UseHttpsRedirection();
 
 // Add security headers
-app.Use(async (context, next) =>
-{
-    context.Response.Headers["X-Frame-Options"] = "DENY";
-    context.Response.Headers["X-Content-Type-Options"] = "nosniff";
-    context.Response.Headers["X-XSS-Protection"] = "1; mode=block";
-    context.Response.Headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
-    context.Response.Headers["Content-Security-Policy"] = 
-        "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self';";
-    
-    await next();
-});
+app.Use(
+    async (context, next) =>
+    {
+        context.Response.Headers["X-Frame-Options"] = "DENY";
+        context.Response.Headers["X-Content-Type-Options"] = "nosniff";
+        context.Response.Headers["X-XSS-Protection"] = "1; mode=block";
+        context.Response.Headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
+        context.Response.Headers["Content-Security-Policy"] =
+            "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self';";
+
+        await next();
+    }
+);
 
 app.UseCors();
 
@@ -117,8 +116,7 @@ app.MapHealthChecks("/health");
 app.MapHealthChecksUI(options => options.UIPath = "/health-ui");
 
 app.MapStaticAssets();
-app.MapRazorComponents<App>()
-    .AddInteractiveServerRenderMode();
+app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
 
 // Ensure proper cleanup of Serilog
 try

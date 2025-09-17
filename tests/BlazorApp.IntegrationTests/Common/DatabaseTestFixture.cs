@@ -27,7 +27,7 @@ public class DatabaseTestFixture : IAsyncLifetime
     {
         await _msSqlContainer.StartAsync();
         ConnectionString = _msSqlContainer.GetConnectionString();
-        
+
         // Create and migrate the database
         await CreateDatabaseAsync();
     }
@@ -70,16 +70,15 @@ public class DatabaseTestFixture : IAsyncLifetime
     public IServiceCollection CreateServiceCollection()
     {
         var services = new ServiceCollection();
-        
+
         // Add logging
         services.AddLogging(builder => builder.AddConsole().SetMinimumLevel(LogLevel.Debug));
-        
+
         // Add Entity Framework with test database
         services.AddDbContext<ApplicationDbContext>(options =>
-            options.UseSqlServer(ConnectionString)
-                   .EnableServiceProviderCaching(false)
-                   .EnableSensitiveDataLogging());
-        
+            options.UseSqlServer(ConnectionString).EnableServiceProviderCaching(false).EnableSensitiveDataLogging()
+        );
+
         return services;
     }
 }
@@ -95,7 +94,7 @@ public abstract class DatabaseIntegrationTestBase : IClassFixture<DatabaseTestFi
     protected DatabaseIntegrationTestBase(DatabaseTestFixture databaseFixture)
     {
         DatabaseFixture = databaseFixture;
-        
+
         var services = DatabaseFixture.CreateServiceCollection();
         ConfigureServices(services);
         ServiceProvider = services.BuildServiceProvider();
@@ -120,7 +119,8 @@ public abstract class DatabaseIntegrationTestBase : IClassFixture<DatabaseTestFi
     /// <summary>
     /// Get a service from the test service provider
     /// </summary>
-    protected T GetService<T>() where T : notnull
+    protected T GetService<T>()
+        where T : notnull
     {
         return ServiceProvider.GetRequiredService<T>();
     }
@@ -131,12 +131,12 @@ public abstract class DatabaseIntegrationTestBase : IClassFixture<DatabaseTestFi
     protected async Task CleanupDatabaseAsync()
     {
         await using var context = CreateDbContext();
-        
+
         // Remove all test data
         context.Users.RemoveRange(context.Users);
         context.Orders.RemoveRange(context.Orders);
         context.OrderItems.RemoveRange(context.OrderItems);
-        
+
         await context.SaveChangesAsync();
     }
 }

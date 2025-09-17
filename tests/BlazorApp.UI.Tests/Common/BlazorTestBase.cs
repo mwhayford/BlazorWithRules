@@ -1,12 +1,12 @@
-using Bunit;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Moq;
+using AutoFixture;
 using BlazorApp.Core.Interfaces;
 using BlazorApp.Core.Services;
 using BlazorApp.Infrastructure.Data;
+using Bunit;
 using Microsoft.EntityFrameworkCore;
-using AutoFixture;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Moq;
 
 namespace BlazorApp.UI.Tests.Common;
 
@@ -26,10 +26,10 @@ public abstract class BlazorTestBase : TestContext, IDisposable
         MockUserService = new Mock<IUserService>();
         MockCacheService = new Mock<ICacheService>();
         MockLogger = new Mock<ILogger>();
-        
+
         // Configure AutoFixture
         ConfigureAutoFixture();
-        
+
         // Configure services for testing
         ConfigureTestServices();
     }
@@ -37,8 +37,7 @@ public abstract class BlazorTestBase : TestContext, IDisposable
     private void ConfigureAutoFixture()
     {
         // Handle circular references
-        Fixture.Behaviors.OfType<ThrowingRecursionBehavior>().ToList()
-            .ForEach(b => Fixture.Behaviors.Remove(b));
+        Fixture.Behaviors.OfType<ThrowingRecursionBehavior>().ToList().ForEach(b => Fixture.Behaviors.Remove(b));
         Fixture.Behaviors.Add(new OmitOnRecursionBehavior());
     }
 
@@ -46,7 +45,8 @@ public abstract class BlazorTestBase : TestContext, IDisposable
     {
         // Add in-memory database for testing
         Services.AddDbContext<ApplicationDbContext>(options =>
-            options.UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString()));
+            options.UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+        );
 
         // Add logging
         Services.AddLogging();
@@ -94,20 +94,16 @@ public abstract class BlazorTestBase : TestContext, IDisposable
     protected void SetupMockUserService()
     {
         var users = Fixture.CreateMany<BlazorApp.Core.Entities.User>(3).ToList();
-        
-        MockUserService.Setup(x => x.GetAllUsersAsync())
-            .ReturnsAsync(users);
-        
-        MockUserService.Setup(x => x.GetUserCountAsync())
-            .ReturnsAsync(users.Count);
-        
-        MockUserService.Setup(x => x.GetActiveUserCountAsync())
-            .ReturnsAsync(users.Count(u => u.IsActive));
-        
+
+        MockUserService.Setup(x => x.GetAllUsersAsync()).ReturnsAsync(users);
+
+        MockUserService.Setup(x => x.GetUserCountAsync()).ReturnsAsync(users.Count);
+
+        MockUserService.Setup(x => x.GetActiveUserCountAsync()).ReturnsAsync(users.Count(u => u.IsActive));
+
         foreach (var user in users)
         {
-            MockUserService.Setup(x => x.GetUserByIdAsync(user.Id))
-                .ReturnsAsync(user);
+            MockUserService.Setup(x => x.GetUserByIdAsync(user.Id)).ReturnsAsync(user);
         }
     }
 
@@ -132,7 +128,12 @@ public abstract class BlazorTestBase : TestContext, IDisposable
     /// <summary>
     /// Verify that an element has the expected attribute value
     /// </summary>
-    protected void VerifyElementAttribute(IRenderedFragment component, string selector, string attributeName, string expectedValue)
+    protected void VerifyElementAttribute(
+        IRenderedFragment component,
+        string selector,
+        string attributeName,
+        string expectedValue
+    )
     {
         var element = component.Find(selector);
         var actualValue = element.GetAttribute(attributeName);
@@ -149,7 +150,7 @@ public abstract class BlazorTestBase : TestContext, IDisposable
         component.WaitForAssertion(() => { }, TimeSpan.FromSeconds(1));
     }
 
-    new public void Dispose()
+    public new void Dispose()
     {
         base.Dispose();
         GC.SuppressFinalize(this);

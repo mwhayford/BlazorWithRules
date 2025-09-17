@@ -22,7 +22,8 @@ public class UserService : IUserService
         IUserRepository userRepository,
         ICacheService cacheService,
         IValidator<User> validator,
-        ILogger<UserService> logger)
+        ILogger<UserService> logger
+    )
     {
         _userRepository = userRepository;
         _cacheService = cacheService;
@@ -42,7 +43,8 @@ public class UserService : IUserService
                 _logger.LogInformation("Retrieved {UserCount} users from database", users.Count());
                 return users.ToList();
             },
-            CacheExpiration);
+            CacheExpiration
+        );
     }
 
     public async Task<User?> GetUserByIdAsync(int id)
@@ -50,7 +52,7 @@ public class UserService : IUserService
         _logger.LogInformation("Getting user with ID {UserId}", id);
 
         var cacheKey = $"{UserCacheKeyPrefix}_{id}";
-        
+
         return await _cacheService.GetOrSetAsync(
             cacheKey,
             async () =>
@@ -66,7 +68,8 @@ public class UserService : IUserService
                 }
                 return user;
             },
-            CacheExpiration);
+            CacheExpiration
+        );
     }
 
     public async Task<User?> GetUserByEmailAsync(string email)
@@ -74,7 +77,7 @@ public class UserService : IUserService
         _logger.LogInformation("Getting user with email {Email}", email);
 
         var cacheKey = $"{UserCacheKeyPrefix}_email_{email.ToLowerInvariant()}";
-        
+
         return await _cacheService.GetOrSetAsync(
             cacheKey,
             async () =>
@@ -90,7 +93,8 @@ public class UserService : IUserService
                 }
                 return user;
             },
-            CacheExpiration);
+            CacheExpiration
+        );
     }
 
     public async Task<User> CreateUserAsync(User user)
@@ -101,14 +105,15 @@ public class UserService : IUserService
         var validationResult = await _validator.ValidateAsync(user);
         if (!validationResult.IsValid)
         {
-            var errors = validationResult.Errors
-                .GroupBy(x => x.PropertyName)
-                .ToDictionary(
-                    g => g.Key,
-                    g => g.Select(x => x.ErrorMessage).ToArray().AsEnumerable());
+            var errors = validationResult
+                .Errors.GroupBy(x => x.PropertyName)
+                .ToDictionary(g => g.Key, g => g.Select(x => x.ErrorMessage).ToArray().AsEnumerable());
 
-            _logger.LogWarning("User validation failed for email {Email}: {ValidationErrors}", 
-                user.Email, string.Join(", ", validationResult.Errors.Select(e => e.ErrorMessage)));
+            _logger.LogWarning(
+                "User validation failed for email {Email}: {ValidationErrors}",
+                user.Email,
+                string.Join(", ", validationResult.Errors.Select(e => e.ErrorMessage))
+            );
 
             throw new ValidationException(errors);
         }
@@ -123,9 +128,12 @@ public class UserService : IUserService
 
         // Create the user
         var createdUser = await _userRepository.AddAsync(user);
-        
-        _logger.LogInformation("Successfully created user {UserId} with email {Email}", 
-            createdUser.Id, createdUser.Email);
+
+        _logger.LogInformation(
+            "Successfully created user {UserId} with email {Email}",
+            createdUser.Id,
+            createdUser.Email
+        );
 
         // Invalidate cache
         await InvalidateUserCacheAsync();
@@ -141,14 +149,15 @@ public class UserService : IUserService
         var validationResult = await _validator.ValidateAsync(user);
         if (!validationResult.IsValid)
         {
-            var errors = validationResult.Errors
-                .GroupBy(x => x.PropertyName)
-                .ToDictionary(
-                    g => g.Key,
-                    g => g.Select(x => x.ErrorMessage).ToArray().AsEnumerable());
+            var errors = validationResult
+                .Errors.GroupBy(x => x.PropertyName)
+                .ToDictionary(g => g.Key, g => g.Select(x => x.ErrorMessage).ToArray().AsEnumerable());
 
-            _logger.LogWarning("User validation failed for user {UserId}: {ValidationErrors}", 
-                user.Id, string.Join(", ", validationResult.Errors.Select(e => e.ErrorMessage)));
+            _logger.LogWarning(
+                "User validation failed for user {UserId}: {ValidationErrors}",
+                user.Id,
+                string.Join(", ", validationResult.Errors.Select(e => e.ErrorMessage))
+            );
 
             throw new ValidationException(errors);
         }
@@ -167,15 +176,14 @@ public class UserService : IUserService
             var userWithEmail = await _userRepository.GetByEmailAsync(user.Email);
             if (userWithEmail != null && userWithEmail.Id != user.Id)
             {
-                _logger.LogWarning("Cannot update user {UserId}: email {Email} already exists", 
-                    user.Id, user.Email);
+                _logger.LogWarning("Cannot update user {UserId}: email {Email} already exists", user.Id, user.Email);
                 throw new InvalidOperationException($"User with email {user.Email} already exists");
             }
         }
 
         // Update the user
         var updatedUser = await _userRepository.UpdateAsync(user);
-        
+
         _logger.LogInformation("Successfully updated user {UserId}", user.Id);
 
         // Invalidate cache
@@ -196,11 +204,11 @@ public class UserService : IUserService
         }
 
         var deleted = await _userRepository.DeleteAsync(id);
-        
+
         if (deleted)
         {
             _logger.LogInformation("Successfully deleted user {UserId}", id);
-            
+
             // Invalidate cache
             await InvalidateUserCacheAsync(id, user.Email);
         }
@@ -225,9 +233,12 @@ public class UserService : IUserService
 
         user.IsActive = !user.IsActive;
         await _userRepository.UpdateAsync(user);
-        
-        _logger.LogInformation("Successfully toggled status for user {UserId} to {Status}", 
-            id, user.IsActive ? "Active" : "Inactive");
+
+        _logger.LogInformation(
+            "Successfully toggled status for user {UserId} to {Status}",
+            id,
+            user.IsActive ? "Active" : "Inactive"
+        );
 
         // Invalidate cache
         await InvalidateUserCacheAsync(id, user.Email);
@@ -240,7 +251,7 @@ public class UserService : IUserService
         _logger.LogInformation("Getting user count");
 
         var cacheKey = "user_count";
-        
+
         return await _cacheService.GetOrSetValueAsync(
             cacheKey,
             async () =>
@@ -249,7 +260,8 @@ public class UserService : IUserService
                 _logger.LogInformation("User count: {UserCount}", count);
                 return count;
             },
-            TimeSpan.FromMinutes(5));
+            TimeSpan.FromMinutes(5)
+        );
     }
 
     public async Task<int> GetActiveUserCountAsync()
@@ -257,7 +269,7 @@ public class UserService : IUserService
         _logger.LogInformation("Getting active user count");
 
         var cacheKey = "active_user_count";
-        
+
         return await _cacheService.GetOrSetValueAsync(
             cacheKey,
             async () =>
@@ -267,7 +279,8 @@ public class UserService : IUserService
                 _logger.LogInformation("Active user count: {ActiveUserCount}", count);
                 return count;
             },
-            TimeSpan.FromMinutes(5));
+            TimeSpan.FromMinutes(5)
+        );
     }
 
     private async Task InvalidateUserCacheAsync(int? userId = null, string? email = null)

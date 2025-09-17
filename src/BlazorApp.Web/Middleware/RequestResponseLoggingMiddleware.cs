@@ -26,10 +26,12 @@ public class RequestResponseLoggingMiddleware
         var stopwatch = Stopwatch.StartNew();
         var requestBody = await ReadRequestBodyAsync(context.Request);
 
-        _logger.LogInformation("HTTP {Method} {Path} started. TraceId: {TraceId}",
+        _logger.LogInformation(
+            "HTTP {Method} {Path} started. TraceId: {TraceId}",
             context.Request.Method,
             context.Request.Path,
-            context.TraceIdentifier);
+            context.TraceIdentifier
+        );
 
         if (!string.IsNullOrEmpty(requestBody))
         {
@@ -48,10 +50,13 @@ public class RequestResponseLoggingMiddleware
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Request failed. HTTP {Method} {Path} - TraceId: {TraceId}",
+            _logger.LogError(
+                ex,
+                "Request failed. HTTP {Method} {Path} - TraceId: {TraceId}",
                 context.Request.Method,
                 context.Request.Path,
-                context.TraceIdentifier);
+                context.TraceIdentifier
+            );
             throw;
         }
         finally
@@ -66,12 +71,14 @@ public class RequestResponseLoggingMiddleware
             responseBodyStream.Seek(0, SeekOrigin.Begin);
             await responseBodyStream.CopyToAsync(originalResponseBodyStream);
 
-            _logger.LogInformation("HTTP {Method} {Path} completed in {ElapsedMs}ms with status {StatusCode}. TraceId: {TraceId}",
+            _logger.LogInformation(
+                "HTTP {Method} {Path} completed in {ElapsedMs}ms with status {StatusCode}. TraceId: {TraceId}",
                 context.Request.Method,
                 context.Request.Path,
                 stopwatch.ElapsedMilliseconds,
                 context.Response.StatusCode,
-                context.TraceIdentifier);
+                context.TraceIdentifier
+            );
 
             if (!string.IsNullOrEmpty(responseBody) && context.Response.StatusCode >= 400)
             {
@@ -82,14 +89,14 @@ public class RequestResponseLoggingMiddleware
 
     private static bool ShouldSkipLogging(PathString path)
     {
-        return path.StartsWithSegments("/_framework") ||
-               path.StartsWithSegments("/css") ||
-               path.StartsWithSegments("/js") ||
-               path.StartsWithSegments("/lib") ||
-               path.StartsWithSegments("/images") ||
-               path.StartsWithSegments("/favicon") ||
-               path.StartsWithSegments("/health") ||
-               path.StartsWithSegments("/_blazor");
+        return path.StartsWithSegments("/_framework")
+            || path.StartsWithSegments("/css")
+            || path.StartsWithSegments("/js")
+            || path.StartsWithSegments("/lib")
+            || path.StartsWithSegments("/images")
+            || path.StartsWithSegments("/favicon")
+            || path.StartsWithSegments("/health")
+            || path.StartsWithSegments("/_blazor");
     }
 
     private static async Task<string> ReadRequestBodyAsync(HttpRequest request)

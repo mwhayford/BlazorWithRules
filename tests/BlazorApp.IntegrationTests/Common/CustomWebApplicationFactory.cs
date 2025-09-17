@@ -25,15 +25,17 @@ public class CustomWebApplicationFactory<TProgram> : WebApplicationFactory<TProg
         builder.ConfigureServices(services =>
         {
             // Remove the existing DbContext registration
-            var dbContextDescriptor = services.SingleOrDefault(
-                d => d.ServiceType == typeof(DbContextOptions<ApplicationDbContext>));
+            var dbContextDescriptor = services.SingleOrDefault(d =>
+                d.ServiceType == typeof(DbContextOptions<ApplicationDbContext>)
+            );
             if (dbContextDescriptor != null)
             {
                 services.Remove(dbContextDescriptor);
             }
 
-            var dbContextServiceDescriptor = services.SingleOrDefault(
-                d => d.ServiceType == typeof(ApplicationDbContext));
+            var dbContextServiceDescriptor = services.SingleOrDefault(d =>
+                d.ServiceType == typeof(ApplicationDbContext)
+            );
             if (dbContextServiceDescriptor != null)
             {
                 services.Remove(dbContextServiceDescriptor);
@@ -54,7 +56,7 @@ public class CustomWebApplicationFactory<TProgram> : WebApplicationFactory<TProg
         });
 
         builder.UseEnvironment("Testing");
-        
+
         // Configure logging for tests
         builder.ConfigureLogging(logging =>
         {
@@ -86,7 +88,8 @@ public class CustomWebApplicationFactory<TProgram> : WebApplicationFactory<TProg
     /// <summary>
     /// Seed test data into the database
     /// </summary>
-    public async Task SeedTestDataAsync<T>(IEnumerable<T> entities) where T : class
+    public async Task SeedTestDataAsync<T>(IEnumerable<T> entities)
+        where T : class
     {
         await using var context = CreateDbContext();
         await context.Set<T>().AddRangeAsync(entities);
@@ -99,12 +102,12 @@ public class CustomWebApplicationFactory<TProgram> : WebApplicationFactory<TProg
     public async Task CleanupDatabaseAsync()
     {
         await using var context = CreateDbContext();
-        
+
         // Remove all test data in the correct order to avoid FK constraints
         context.OrderItems.RemoveRange(context.OrderItems);
         context.Orders.RemoveRange(context.Orders);
         context.Users.RemoveRange(context.Users);
-        
+
         await context.SaveChangesAsync();
     }
 }

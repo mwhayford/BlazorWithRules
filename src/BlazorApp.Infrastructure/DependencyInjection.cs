@@ -27,20 +27,24 @@ public static class DependencyInjection
         services.AddDbContext<ApplicationDbContext>(options =>
         {
             var connectionString = configuration.GetConnectionString("DefaultConnection");
-            
+
             if (string.IsNullOrEmpty(connectionString))
             {
                 throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
             }
 
-            options.UseSqlServer(connectionString, sqlOptions =>
-            {
-                sqlOptions.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName);
-                sqlOptions.EnableRetryOnFailure(
-                    maxRetryCount: 3,
-                    maxRetryDelay: TimeSpan.FromSeconds(30),
-                    errorNumbersToAdd: null);
-            });
+            options.UseSqlServer(
+                connectionString,
+                sqlOptions =>
+                {
+                    sqlOptions.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName);
+                    sqlOptions.EnableRetryOnFailure(
+                        maxRetryCount: 3,
+                        maxRetryDelay: TimeSpan.FromSeconds(30),
+                        errorNumbersToAdd: null
+                    );
+                }
+            );
 
             // Enable sensitive data logging in development
             if (configuration.GetSection("Logging")["EnableSensitiveDataLogging"] == "true")
@@ -77,12 +81,12 @@ public static class DependencyInjection
     {
         using var scope = serviceProvider.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        
+
         try
         {
             // Ensure database is created
             await context.Database.EnsureCreatedAsync();
-            
+
             // Apply any pending migrations
             if ((await context.Database.GetPendingMigrationsAsync()).Any())
             {
@@ -124,7 +128,7 @@ public static class DependencyInjection
                 Role = "Administrator",
                 IsActive = true,
                 PhoneNumber = "+1-555-0101",
-                DateOfBirth = new DateTime(1985, 5, 15)
+                DateOfBirth = new DateTime(1985, 5, 15),
             },
             new User
             {
@@ -134,7 +138,7 @@ public static class DependencyInjection
                 Role = "Manager",
                 IsActive = true,
                 PhoneNumber = "+1-555-0102",
-                DateOfBirth = new DateTime(1990, 8, 22)
+                DateOfBirth = new DateTime(1990, 8, 22),
             },
             new User
             {
@@ -144,7 +148,7 @@ public static class DependencyInjection
                 Role = "User",
                 IsActive = true,
                 PhoneNumber = "+1-555-0103",
-                DateOfBirth = new DateTime(1992, 12, 3)
+                DateOfBirth = new DateTime(1992, 12, 3),
             },
             new User
             {
@@ -154,8 +158,8 @@ public static class DependencyInjection
                 Role = "User",
                 IsActive = false,
                 PhoneNumber = "+1-555-0104",
-                DateOfBirth = new DateTime(1988, 3, 17)
-            }
+                DateOfBirth = new DateTime(1988, 3, 17),
+            },
         };
 
         context.Users.AddRange(users);
@@ -177,7 +181,7 @@ public static class DependencyInjection
                 ShippingAddress = "123 Main St, Anytown, ST 12345",
                 BillingAddress = "123 Main St, Anytown, ST 12345",
                 ShippedAt = DateTime.UtcNow.AddDays(-25),
-                DeliveredAt = DateTime.UtcNow.AddDays(-22)
+                DeliveredAt = DateTime.UtcNow.AddDays(-22),
             },
             new Order
             {
@@ -188,8 +192,8 @@ public static class DependencyInjection
                 Status = "Shipped",
                 ShippingAddress = "456 Oak Ave, Another City, ST 67890",
                 BillingAddress = "456 Oak Ave, Another City, ST 67890",
-                ShippedAt = DateTime.UtcNow.AddDays(-10)
-            }
+                ShippedAt = DateTime.UtcNow.AddDays(-10),
+            },
         };
 
         context.Orders.AddRange(orders);
@@ -207,7 +211,7 @@ public static class DependencyInjection
                 UnitPrice = 149.99m,
                 TotalPrice = 149.99m,
                 Category = "Electronics",
-                ProductDescription = "High-quality wireless headphones with noise cancellation"
+                ProductDescription = "High-quality wireless headphones with noise cancellation",
             },
             new OrderItem
             {
@@ -218,7 +222,7 @@ public static class DependencyInjection
                 UnitPrice = 25.00m,
                 TotalPrice = 50.00m,
                 Category = "Accessories",
-                ProductDescription = "Protective phone case with screen protector"
+                ProductDescription = "Protective phone case with screen protector",
             },
             new OrderItem
             {
@@ -229,8 +233,8 @@ public static class DependencyInjection
                 UnitPrice = 89.99m,
                 TotalPrice = 89.99m,
                 Category = "Electronics",
-                ProductDescription = "Portable Bluetooth speaker with excellent sound quality"
-            }
+                ProductDescription = "Portable Bluetooth speaker with excellent sound quality",
+            },
         };
 
         context.OrderItems.AddRange(orderItems);

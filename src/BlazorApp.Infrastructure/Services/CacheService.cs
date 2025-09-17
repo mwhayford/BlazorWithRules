@@ -1,9 +1,9 @@
+using System.Collections.Concurrent;
+using System.Text.Json;
+using System.Text.RegularExpressions;
+using BlazorApp.Core.Interfaces;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
-using BlazorApp.Core.Interfaces;
-using System.Text.Json;
-using System.Collections.Concurrent;
-using System.Text.RegularExpressions;
 
 namespace BlazorApp.Infrastructure.Services;
 
@@ -21,13 +21,13 @@ public class CacheService : ICacheService
         _cacheKeys = new ConcurrentDictionary<string, byte>();
     }
 
-    public Task<T?> GetAsync<T>(string key) where T : class
+    public Task<T?> GetAsync<T>(string key)
+        where T : class
     {
         try
         {
             var result = _memoryCache.Get<T>(key);
-            _logger.LogDebug("Cache {Operation}: {Key} - {Status}", 
-                "GET", key, result != null ? "HIT" : "MISS");
+            _logger.LogDebug("Cache {Operation}: {Key} - {Status}", "GET", key, result != null ? "HIT" : "MISS");
             return Task.FromResult(result);
         }
         catch (Exception ex)
@@ -37,7 +37,8 @@ public class CacheService : ICacheService
         }
     }
 
-    public Task SetAsync<T>(string key, T value, TimeSpan? expiration = null) where T : class
+    public Task SetAsync<T>(string key, T value, TimeSpan? expiration = null)
+        where T : class
     {
         try
         {
@@ -45,20 +46,21 @@ public class CacheService : ICacheService
             {
                 AbsoluteExpirationRelativeToNow = expiration ?? DefaultExpiration,
                 SlidingExpiration = TimeSpan.FromMinutes(5),
-                Priority = CacheItemPriority.Normal
+                Priority = CacheItemPriority.Normal,
             };
 
-            options.RegisterPostEvictionCallback((evictedKey, evictedValue, reason, state) =>
-            {
-                _cacheKeys.TryRemove(evictedKey.ToString()!, out _);
-                _logger.LogDebug("Cache key {Key} evicted. Reason: {Reason}", evictedKey, reason);
-            });
+            options.RegisterPostEvictionCallback(
+                (evictedKey, evictedValue, reason, state) =>
+                {
+                    _cacheKeys.TryRemove(evictedKey.ToString()!, out _);
+                    _logger.LogDebug("Cache key {Key} evicted. Reason: {Reason}", evictedKey, reason);
+                }
+            );
 
             _memoryCache.Set(key, value, options);
             _cacheKeys.TryAdd(key, 0);
-            
-            _logger.LogDebug("Cache SET: {Key} with expiration {Expiration}", 
-                key, expiration ?? DefaultExpiration);
+
+            _logger.LogDebug("Cache SET: {Key} with expiration {Expiration}", key, expiration ?? DefaultExpiration);
         }
         catch (Exception ex)
         {
@@ -97,8 +99,7 @@ public class CacheService : ICacheService
                 _cacheKeys.TryRemove(key, out _);
             }
 
-            _logger.LogDebug("Cache REMOVE BY PATTERN: {Pattern} - {Count} keys removed", 
-                pattern, keysToRemove.Count);
+            _logger.LogDebug("Cache REMOVE BY PATTERN: {Pattern} - {Count} keys removed", pattern, keysToRemove.Count);
         }
         catch (Exception ex)
         {
@@ -108,7 +109,8 @@ public class CacheService : ICacheService
         return Task.CompletedTask;
     }
 
-    public async Task<T> GetOrSetAsync<T>(string key, Func<Task<T>> getItem, TimeSpan? expiration = null) where T : class
+    public async Task<T> GetOrSetAsync<T>(string key, Func<Task<T>> getItem, TimeSpan? expiration = null)
+        where T : class
     {
         var cachedValue = await GetAsync<T>(key);
         if (cachedValue != null)
@@ -125,7 +127,12 @@ public class CacheService : ICacheService
         return value;
     }
 
-    public async Task<TValue> GetOrSetValueAsync<TValue>(string key, Func<Task<TValue>> getItem, TimeSpan? expiration = null) where TValue : struct
+    public async Task<TValue> GetOrSetValueAsync<TValue>(
+        string key,
+        Func<Task<TValue>> getItem,
+        TimeSpan? expiration = null
+    )
+        where TValue : struct
     {
         try
         {
@@ -137,25 +144,26 @@ public class CacheService : ICacheService
 
             _logger.LogDebug("Cache MISS: {Key}", key);
             var newValue = await getItem();
-            
+
             var options = new MemoryCacheEntryOptions
             {
                 AbsoluteExpirationRelativeToNow = expiration ?? DefaultExpiration,
                 SlidingExpiration = TimeSpan.FromMinutes(5),
-                Priority = CacheItemPriority.Normal
+                Priority = CacheItemPriority.Normal,
             };
 
-            options.RegisterPostEvictionCallback((evictedKey, evictedVal, reason, state) =>
-            {
-                _cacheKeys.TryRemove(evictedKey.ToString()!, out _);
-                _logger.LogDebug("Cache key {Key} evicted. Reason: {Reason}", evictedKey, reason);
-            });
+            options.RegisterPostEvictionCallback(
+                (evictedKey, evictedVal, reason, state) =>
+                {
+                    _cacheKeys.TryRemove(evictedKey.ToString()!, out _);
+                    _logger.LogDebug("Cache key {Key} evicted. Reason: {Reason}", evictedKey, reason);
+                }
+            );
 
             _memoryCache.Set(key, newValue, options);
             _cacheKeys.TryAdd(key, 0);
-            
-            _logger.LogDebug("Cache SET: {Key} with expiration {Expiration}", 
-                key, expiration ?? DefaultExpiration);
+
+            _logger.LogDebug("Cache SET: {Key} with expiration {Expiration}", key, expiration ?? DefaultExpiration);
 
             return newValue;
         }
@@ -166,7 +174,8 @@ public class CacheService : ICacheService
         }
     }
 
-    public bool TryGetValue<T>(string key, out T? value) where T : class
+    public bool TryGetValue<T>(string key, out T? value)
+        where T : class
     {
         try
         {
@@ -180,7 +189,8 @@ public class CacheService : ICacheService
         }
     }
 
-    public void Set<T>(string key, T value, TimeSpan? expiration = null) where T : class
+    public void Set<T>(string key, T value, TimeSpan? expiration = null)
+        where T : class
     {
         SetAsync(key, value, expiration).GetAwaiter().GetResult();
     }
