@@ -1,0 +1,21 @@
+# Build output directories
+**/bin/
+**/obj/
+**/publish/
+
+# Third-party and generated files
+**/wwwroot/lib/**
+*.generated.cs
+*.designer.cs
+*.g.cs
+*.g.i.cs
+**/Migrations/*.cs
+**/GlobalAssemblyInfo.cs
+
+# IDE files
+.vs/
+*.suo
+*.user
+
+# Package restore folders
+packages/

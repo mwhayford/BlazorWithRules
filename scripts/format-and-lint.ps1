@@ -132,10 +132,10 @@ try {
     if (Test-Path "node_modules/.bin/prettier" -PathType Leaf) {
         if ($mode -eq "fix") {
             Write-ColorOutput "Running Prettier with --write..." $Yellow
-            & "node_modules/.bin/prettier" "." "--ignore-path" ".gitignore" "--write"
+            & "node_modules/.bin/prettier" "." "--ignore-path" ".prettierignore" "--write"
         } else {
             Write-ColorOutput "Running Prettier with --check..." $Yellow
-            & "node_modules/.bin/prettier" "." "--ignore-path" ".gitignore" "--check"
+            & "node_modules/.bin/prettier" "." "--ignore-path" ".prettierignore" "--check"
         }
         
         if ($LASTEXITCODE -eq 0) {
