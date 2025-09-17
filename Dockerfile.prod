@@ -1,0 +1,51 @@
+# Multi-stage build for production
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+WORKDIR /src
+
+# Copy project files
+COPY BlazorWithRules.sln .
+COPY src/BlazorApp.Web/BlazorApp.Web.csproj src/BlazorApp.Web/
+COPY src/BlazorApp.Core/BlazorApp.Core.csproj src/BlazorApp.Core/
+COPY src/BlazorApp.Infrastructure/BlazorApp.Infrastructure.csproj src/BlazorApp.Infrastructure/
+COPY src/BlazorApp.Shared/BlazorApp.Shared.csproj src/BlazorApp.Shared/
+
+# Restore dependencies
+RUN dotnet restore
+
+# Copy source code
+COPY . .
+
+# Build and publish
+WORKDIR /src/src/BlazorApp.Web
+RUN dotnet publish -c Release -o /app/publish --no-restore
+
+# Runtime stage
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
+WORKDIR /app
+
+# Install necessary packages
+RUN apt-get update && apt-get install -y \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy published application
+COPY --from=build /app/publish .
+
+# Create non-root user
+RUN groupadd -r appuser && useradd -r -g appuser appuser
+RUN chown -R appuser:appuser /app
+USER appuser
+
+# Expose port
+EXPOSE 8080
+
+# Set environment variables
+ENV ASPNETCORE_URLS=http://+:8080
+ENV ASPNETCORE_ENVIRONMENT=Production
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8080/health || exit 1
+
+# Start application
+ENTRYPOINT ["dotnet", "BlazorApp.Web.dll"]

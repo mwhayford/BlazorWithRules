@@ -1,0 +1,33 @@
+{
+  "vpcCidr": "10.0.0.0/16",
+  "instanceType": "t3.micro",
+  "minCapacity": 1,
+  "maxCapacity": 3,
+  "databaseInstanceClass": "db.t3.micro",
+  "redisNodeType": "cache.t3.micro",
+  "environment": "dev",
+  "description": "Development environment configuration",
+  "tags": {
+    "Environment": "dev",
+    "CostCenter": "Engineering",
+    "Project": "BlazorWithRules"
+  },
+  "monitoring": {
+    "enableDetailedMonitoring": false,
+    "logRetentionDays": 7,
+    "enablePerformanceInsights": false
+  },
+  "security": {
+    "enableDeletionProtection": false,
+    "enableBackupRetention": true,
+    "backupRetentionDays": 7,
+    "enableMultiAz": false,
+    "enableEncryption": true
+  },
+  "scaling": {
+    "cpuTargetUtilization": 70,
+    "memoryTargetUtilization": 80,
+    "scaleInCooldown": 300,
+    "scaleOutCooldown": 300
+  }
+}

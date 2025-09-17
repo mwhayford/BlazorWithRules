@@ -1,0 +1,33 @@
+{
+  "vpcCidr": "10.2.0.0/16",
+  "instanceType": "t3.medium",
+  "minCapacity": 2,
+  "maxCapacity": 10,
+  "databaseInstanceClass": "db.t3.small",
+  "redisNodeType": "cache.t3.small",
+  "environment": "prod",
+  "description": "Production environment configuration",
+  "tags": {
+    "Environment": "prod",
+    "CostCenter": "Engineering",
+    "Project": "BlazorWithRules"
+  },
+  "monitoring": {
+    "enableDetailedMonitoring": true,
+    "logRetentionDays": 30,
+    "enablePerformanceInsights": true
+  },
+  "security": {
+    "enableDeletionProtection": true,
+    "enableBackupRetention": true,
+    "backupRetentionDays": 30,
+    "enableMultiAz": true,
+    "enableEncryption": true
+  },
+  "scaling": {
+    "cpuTargetUtilization": 60,
+    "memoryTargetUtilization": 70,
+    "scaleInCooldown": 300,
+    "scaleOutCooldown": 300
+  }
+}

@@ -1,0 +1,92 @@
+name: Cleanup AWS Resources
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to clean up'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+        - dev
+        - staging
+        - prod
+      confirm:
+        description: 'Type "yes" to confirm cleanup'
+        required: true
+        type: string
+
+env:
+  AWS_REGION: us-east-1
+  ECR_REPOSITORY: blazorwithrules
+
+jobs:
+  cleanup:
+    name: Cleanup AWS Resources
+    runs-on: ubuntu-latest
+    if: github.event.inputs.confirm == 'yes'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        cache-dependency-path: infrastructure/aws/cdk/package-lock.json
+        
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+        
+    - name: Install CDK dependencies
+      run: |
+        cd infrastructure/aws/cdk
+        npm ci
+        
+    - name: Destroy CDK stack
+      run: |
+        cd infrastructure/aws/cdk
+        cdk destroy --all --context environment=${{ github.event.inputs.environment }} --force
+        
+    - name: Delete ECR repository
+      run: |
+        REPO_NAME="${{ env.ECR_REPOSITORY }}-${{ github.event.inputs.environment }}"
+        
+        # Delete all images first
+        aws ecr list-images --repository-name $REPO_NAME --query "imageIds[*]" --output json | \
+        jq -r '.[] | @base64' | while read img; do
+          IMAGE_ID=$(echo $img | base64 --decode)
+          aws ecr batch-delete-image --repository-name $REPO_NAME --image-ids "$IMAGE_ID" || true
+        done
+        
+        # Delete repository
+        aws ecr delete-repository --repository-name $REPO_NAME --force || true
+        
+    - name: Delete CloudWatch log groups
+      run: |
+        LOG_GROUP="/ecs/blazorwithrules-${{ github.event.inputs.environment }}"
+        aws logs delete-log-group --log-group-name $LOG_GROUP || true
+        
+    - name: Delete Secrets Manager secrets
+      run: |
+        SECRETS=(
+          "blazorwithrules-${{ github.event.inputs.environment }}/database"
+          "blazorwithrules-${{ github.event.inputs.environment }}/redis"
+        )
+        
+        for secret in "${SECRETS[@]}"; do
+          aws secretsmanager delete-secret --secret-id "$secret" --force-delete-without-recovery || true
+        done
+        
+    - name: Cleanup summary
+      run: |
+        echo "🧹 Cleanup completed for environment: ${{ github.event.inputs.environment }}"
+        echo "✅ All AWS resources have been removed"
+        echo "💰 You should see reduced costs in your AWS bill"
