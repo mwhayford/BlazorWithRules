@@ -1,0 +1,102 @@
+version: '3.8'
+
+services:
+  # SQL Server Database
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: blazorwithrules-sqlserver
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=YourStrong@Passw0rd
+      - MSSQL_PID=Developer
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+    networks:
+      - blazorwithrules-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P YourStrong@Passw0rd -Q 'SELECT 1' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  # Redis Cache (Optional)
+  redis:
+    image: redis:7-alpine
+    container_name: blazorwithrules-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - blazorwithrules-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # SQL Server Management Studio (SSMS) - Optional
+  ssms:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: blazorwithrules-ssms
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=YourStrong@Passw0rd
+    ports:
+      - "1434:1433"
+    volumes:
+      - ./scripts/ssms-setup.sql:/docker-entrypoint-initdb.d/ssms-setup.sql:ro
+    networks:
+      - blazorwithrules-network
+    depends_on:
+      - sqlserver
+    restart: unless-stopped
+    profiles:
+      - tools
+
+  # Application (Blazor Web App)
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: blazorwithrules-app
+    ports:
+      - "5000:80"
+      - "5001:443"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80;https://+:443
+      - ConnectionStrings__DefaultConnection=Server=sqlserver,1433;Database=BlazorWithRules;User Id=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=true;MultipleActiveResultSets=true
+      - ConnectionStrings__Redis=redis:6379
+    volumes:
+      - ./src:/app/src:ro
+      - ./tests:/app/tests:ro
+      - app_data:/app/data
+    networks:
+      - blazorwithrules-network
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    profiles:
+      - app
+
+volumes:
+  sqlserver_data:
+    driver: local
+  redis_data:
+    driver: local
+  app_data:
+    driver: local
+
+networks:
+  blazorwithrules-network:
+    driver: bridge
