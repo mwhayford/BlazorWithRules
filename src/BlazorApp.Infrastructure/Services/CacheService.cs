@@ -124,7 +124,7 @@ public class CacheService : ICacheService
             await SetAsync(key, value, expiration);
         }
 
-        return value;
+        return value!;
     }
 
     public async Task<TValue> GetOrSetValueAsync<TValue>(

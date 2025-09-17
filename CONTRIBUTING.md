@@ -36,26 +36,26 @@ Before contributing, ensure you have:
 
 1. **Fork the repository** on GitHub
 2. **Clone your fork** locally:
-   ```bash
-   git clone https://github.com/yourusername/BlazorWithRules.git
-   cd BlazorWithRules
-   ```
+    ```bash
+    git clone https://github.com/yourusername/BlazorWithRules.git
+    cd BlazorWithRules
+    ```
 3. **Add upstream remote**:
-   ```bash
-   git remote add upstream https://github.com/original/BlazorWithRules.git
-   ```
+    ```bash
+    git remote add upstream https://github.com/original/BlazorWithRules.git
+    ```
 4. **Install dependencies**:
-   ```bash
-   dotnet restore
-   ```
+    ```bash
+    dotnet restore
+    ```
 5. **Build the solution**:
-   ```bash
-   dotnet build
-   ```
+    ```bash
+    dotnet build
+    ```
 6. **Run tests**:
-   ```bash
-   dotnet test
-   ```
+    ```bash
+    dotnet test
+    ```
 
 ## 🔄 Development Process
 
@@ -72,31 +72,35 @@ We follow a **Git Flow** approach:
 ### Workflow
 
 1. **Create a feature branch**:
-   ```bash
-   git checkout develop
-   git pull upstream develop
-   git checkout -b feature/your-feature-name
-   ```
+
+    ```bash
+    git checkout develop
+    git pull upstream develop
+    git checkout -b feature/your-feature-name
+    ```
 
 2. **Make your changes** following our coding standards
 
 3. **Write tests** for new functionality
 
 4. **Run all tests** to ensure nothing breaks:
-   ```bash
-   dotnet test
-   ```
+
+    ```bash
+    dotnet test
+    ```
 
 5. **Commit your changes** with clear messages:
-   ```bash
-   git add .
-   git commit -m "feat: add user authentication feature"
-   ```
+
+    ```bash
+    git add .
+    git commit -m "feat: add user authentication feature"
+    ```
 
 6. **Push to your fork**:
-   ```bash
-   git push origin feature/your-feature-name
-   ```
+
+    ```bash
+    git push origin feature/your-feature-name
+    ```
 
 7. **Create a Pull Request** on GitHub
 
@@ -107,12 +111,14 @@ We follow a **Git Flow** approach:
 We use **EditorConfig** for consistent formatting. Key guidelines:
 
 #### C# Conventions
+
 - **PascalCase** for classes, methods, properties, and public fields
 - **camelCase** for private fields (with underscore prefix: `_fieldName`)
 - **PascalCase** for constants and static readonly fields
 - **Interfaces** prefixed with `I` (e.g., `IUserService`)
 
 #### Example:
+
 ```csharp
 public class UserService : IUserService
 {
@@ -153,16 +159,19 @@ src/
 ### Naming Conventions
 
 #### Files and Folders
+
 - **PascalCase** for file names: `UserService.cs`
 - **PascalCase** for folder names: `Components/`
 - **kebab-case** for URLs: `/user-management`
 
 #### Database
+
 - **PascalCase** for table names: `Users`
 - **PascalCase** for column names: `FirstName`
 - **Plural** for table names: `Users`, `Orders`
 
 #### Tests
+
 - **Descriptive test names**: `GetUserById_ShouldReturnUser_WhenUserExists`
 - **Arrange-Act-Assert** pattern
 - **One assertion per test** (when possible)
@@ -180,6 +189,7 @@ We follow a **three-layer testing approach**:
 ### Writing Tests
 
 #### Unit Test Example
+
 ```csharp
 [Fact]
 public async Task CreateUserAsync_ShouldCreateUser_WhenValidDataProvided()
@@ -188,7 +198,7 @@ public async Task CreateUserAsync_ShouldCreateUser_WhenValidDataProvided()
     var user = new User { FirstName = "John", LastName = "Doe", Email = "john@example.com" };
     var mockRepository = new Mock<IUserRepository>();
     var mockValidator = new Mock<IValidator<User>>();
-    
+
     mockValidator.Setup(x => x.ValidateAsync(user, default))
         .ReturnsAsync(new ValidationResult());
     mockRepository.Setup(x => x.AddAsync(user, default))
@@ -207,6 +217,7 @@ public async Task CreateUserAsync_ShouldCreateUser_WhenValidDataProvided()
 ```
 
 #### Test Categories
+
 - **Unit Tests**: `[Fact]` for single test cases
 - **Parameterized Tests**: `[Theory]` with `[InlineData]` or `[AutoData]`
 - **Integration Tests**: `[Fact]` with database setup
@@ -250,20 +261,24 @@ powershell scripts/run-tests.ps1 -TestType unit -Coverage
 
 ```markdown
 ## Description
+
 Brief description of changes made.
 
 ## Type of Change
+
 - [ ] Bug fix (non-breaking change)
 - [ ] New feature (non-breaking change)
 - [ ] Breaking change (fix or feature causing existing functionality to break)
 - [ ] Documentation update
 
 ## Testing
+
 - [ ] Unit tests added/updated
 - [ ] Integration tests added/updated
 - [ ] All tests pass locally
 
 ## Checklist
+
 - [ ] Code follows style guidelines
 - [ ] Self-review completed
 - [ ] Documentation updated
@@ -309,6 +324,7 @@ Instead, email: security@yourdomain.com
 We follow **Conventional Commits** specification:
 
 ### Format
+
 ```
 <type>[optional scope]: <description>
 
@@ -318,6 +334,7 @@ We follow **Conventional Commits** specification:
 ```
 
 ### Types
+
 - `feat`: New feature
 - `fix`: Bug fix
 - `docs`: Documentation changes
@@ -327,6 +344,7 @@ We follow **Conventional Commits** specification:
 - `chore`: Maintenance tasks
 
 ### Examples
+
 ```bash
 feat(auth): add JWT authentication
 fix(user): resolve email validation issue
@@ -340,6 +358,7 @@ refactor(cache): improve cache service performance
 ### Version Numbers
 
 We use **Semantic Versioning** (SemVer):
+
 - `MAJOR.MINOR.PATCH` (e.g., `1.2.3`)
 - **MAJOR**: Breaking changes
 - **MINOR**: New features (backward compatible)
@@ -374,6 +393,7 @@ We use **Semantic Versioning** (SemVer):
 ## 🎉 Recognition
 
 Contributors will be recognized in:
+
 - **CONTRIBUTORS.md** file
 - **Release notes** for significant contributions
 - **Annual contributor appreciation** post
@@ -382,5 +402,5 @@ Thank you for contributing to BlazorWithRules! 🚀
 
 ---
 
-*Last Updated: September 17, 2025*  
-*Next Review: October 17, 2025*
+_Last Updated: September 17, 2025_  
+_Next Review: October 17, 2025_
