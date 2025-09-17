@@ -38,8 +38,4 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
-  
-  <ItemGroup>
-    <Content Include="wwwroot\lib\**\*" CopyToOutputDirectory="PreserveNewest" />
-  </ItemGroup>
 </Project>
