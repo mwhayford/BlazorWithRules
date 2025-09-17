@@ -7,6 +7,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
+// Add additional services as needed
+
 // Add Infrastructure services (Entity Framework, Repositories, etc.)
 builder.Services.AddInfrastructure(builder.Configuration);
 
