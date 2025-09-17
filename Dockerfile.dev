@@ -1,0 +1,81 @@
+# Development Dockerfile for BlazorWithRules
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
+WORKDIR /app
+EXPOSE 80
+EXPOSE 443
+
+# Install Node.js for frontend tooling
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+    && apt-get install -y nodejs
+
+# Install global npm packages for development
+RUN npm install -g npm@latest
+
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+WORKDIR /src
+
+# Install Node.js for frontend tooling
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+    && apt-get install -y nodejs
+
+# Install global npm packages for development
+RUN npm install -g npm@latest
+
+# Copy project files
+COPY ["src/BlazorApp.Web/BlazorApp.Web.csproj", "src/BlazorApp.Web/"]
+COPY ["src/BlazorApp.Core/BlazorApp.Core.csproj", "src/BlazorApp.Core/"]
+COPY ["src/BlazorApp.Infrastructure/BlazorApp.Infrastructure.csproj", "src/BlazorApp.Infrastructure/"]
+COPY ["src/BlazorApp.Shared/BlazorApp.Shared.csproj", "src/BlazorApp.Shared/"]
+
+# Restore dependencies
+RUN dotnet restore "src/BlazorApp.Web/BlazorApp.Web.csproj"
+
+# Copy all source code
+COPY . .
+
+# Install npm dependencies
+WORKDIR /src
+RUN npm install
+
+# Publish the application (includes static files)
+WORKDIR /src/src/BlazorApp.Web
+RUN dotnet publish "BlazorApp.Web.csproj" -c Release -o /app/build /p:UseAppHost=false
+
+FROM build AS publish
+RUN dotnet publish "BlazorApp.Web.csproj" -c Release -o /app/publish /p:UseAppHost=false
+
+FROM base AS final
+WORKDIR /app
+
+# Install development tools
+RUN apt-get update && apt-get install -y \
+    curl \
+    wget \
+    git \
+    vim \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy published application
+COPY --from=publish /app/publish .
+
+# Copy the lib directory from local source to ensure Bootstrap files are available
+COPY src/BlazorApp.Web/wwwroot/lib ./wwwroot/lib
+
+# Set up development environment
+ENV ASPNETCORE_ENVIRONMENT=Development
+ENV ASPNETCORE_URLS=http://+:80;https://+:443
+
+# Create a non-root user for development
+RUN groupadd -r appuser && useradd -r -g appuser appuser
+RUN chown -R appuser:appuser /app
+USER appuser
+
+# Create a startup script that generates the certificate and runs the app
+RUN echo '#!/bin/bash\n\
+echo "Generating HTTPS development certificate..."\n\
+dotnet dev-certs https --trust\n\
+echo "Starting Blazor application..."\n\
+exec dotnet BlazorApp.Web.dll' > /app/start.sh && \
+chmod +x /app/start.sh
+
+ENTRYPOINT ["/app/start.sh"]

@@ -1,0 +1,78 @@
+# Development overrides for docker-compose.yml
+# This file is automatically loaded by docker-compose for development
+
+services:
+  # Override app service for development
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+      target: build  # Use build stage for development
+    volumes:
+      # Mount source code for hot reload
+      - ./src:/app/src:rw
+      - ./tests:/app/tests:rw
+      - ./scripts:/app/scripts:rw
+      # Mount node_modules to avoid permission issues
+      - /app/node_modules
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80
+      - DOTNET_USE_POLLING_FILE_WATCHER=true
+      - ConnectionStrings__DefaultConnection=Server=sqlserver,1433;Database=BlazorWithRules;User Id=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=true;MultipleActiveResultSets=true
+      - ConnectionStrings__Redis=redis:6379
+      - ASPNETCORE_HTTPS_PORT=
+    working_dir: /app/build
+    command: ["dotnet", "BlazorApp.Web.dll"]
+    ports:
+      - "5000:80"
+      - "5002:5002"  # Additional port for debugging
+
+  # Override SQL Server for development
+  sqlserver:
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=YourStrong@Passw0rd
+      - MSSQL_PID=Developer
+      - MSSQL_COLLATION=SQL_Latin1_General_CP1_CI_AS
+    ports:
+      - "1433:1433"
+      - "1434:1434"  # Additional port for SSMS
+
+  # Override Redis for development
+  redis:
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+
+  # Add a database management tool
+  adminer:
+    image: adminer:latest
+    container_name: blazorwithrules-adminer
+    ports:
+      - "8080:8080"
+    environment:
+      - ADMINER_DEFAULT_SERVER=sqlserver
+    networks:
+      - blazorwithrules-network
+    depends_on:
+      - sqlserver
+    restart: unless-stopped
+    profiles:
+      - tools
+
+  # Add a Redis management tool
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: blazorwithrules-redis-commander
+    ports:
+      - "8081:8081"
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+    networks:
+      - blazorwithrules-network
+    depends_on:
+      - redis
+    restart: unless-stopped
+    profiles:
+      - tools
