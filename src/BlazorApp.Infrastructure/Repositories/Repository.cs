@@ -152,6 +152,16 @@ public class Repository<T> : IRepository<T> where T : BaseEntity
     }
 
     /// <summary>
+    /// Get count of entities asynchronously
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Count of entities</returns>
+    public virtual async Task<int> CountAsync(CancellationToken cancellationToken = default)
+    {
+        return await _dbSet.CountAsync(cancellationToken);
+    }
+
+    /// <summary>
     /// Check if entity exists by ID
     /// </summary>
     /// <param name="id">Entity ID</param>

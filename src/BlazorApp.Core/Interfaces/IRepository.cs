@@ -57,6 +57,13 @@ public interface IRepository<T> where T : BaseEntity
     Task<bool> DeleteAsync(int id, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Get count of entities asynchronously
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Count of entities</returns>
+    Task<int> CountAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Save changes to the database asynchronously
     /// </summary>
     /// <param name="cancellationToken">Cancellation token</param>

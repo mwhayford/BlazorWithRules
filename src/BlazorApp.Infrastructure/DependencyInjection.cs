@@ -1,7 +1,9 @@
 using BlazorApp.Core.Entities;
 using BlazorApp.Core.Interfaces;
+using BlazorApp.Core.Services;
 using BlazorApp.Infrastructure.Data;
 using BlazorApp.Infrastructure.Repositories;
+using BlazorApp.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -57,9 +59,11 @@ public static class DependencyInjection
         services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
         services.AddScoped<IUserRepository, UserRepository>();
 
-        // Add health checks for database (commented out for now - requires additional package)
-        // services.AddHealthChecks()
-        //     .AddDbContextCheck<ApplicationDbContext>("database");
+        // Register cache service
+        services.AddScoped<ICacheService, CacheService>();
+
+        // Register services
+        services.AddScoped<IUserService, UserService>();
 
         return services;
     }
