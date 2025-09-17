@@ -66,7 +66,7 @@ public class UserService : IUserService
                 {
                     _logger.LogWarning("User with ID {UserId} not found", id);
                 }
-                return user;
+                return user!;
             },
             CacheExpiration
         );
@@ -91,7 +91,7 @@ public class UserService : IUserService
                 {
                     _logger.LogWarning("User with email {Email} not found", email);
                 }
-                return user;
+                return user!;
             },
             CacheExpiration
         );
