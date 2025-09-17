@@ -1,7 +1,7 @@
 using System.Net;
 using System.Text.Json;
-using BlazorApp.Shared.Models;
 using BlazorApp.Shared.Exceptions;
+using BlazorApp.Shared.Models;
 
 namespace BlazorApp.Web.Middleware;
 
@@ -14,7 +14,8 @@ public class GlobalExceptionMiddleware
     public GlobalExceptionMiddleware(
         RequestDelegate next,
         ILogger<GlobalExceptionMiddleware> logger,
-        IWebHostEnvironment environment)
+        IWebHostEnvironment environment
+    )
     {
         _next = next;
         _logger = logger;
@@ -29,8 +30,7 @@ public class GlobalExceptionMiddleware
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An unhandled exception occurred during request {RequestPath}",
-                context.Request.Path);
+            _logger.LogError(ex, "An unhandled exception occurred during request {RequestPath}", context.Request.Path);
 
             await HandleExceptionAsync(context, ex);
         }
@@ -39,11 +39,11 @@ public class GlobalExceptionMiddleware
     private async Task HandleExceptionAsync(HttpContext context, Exception exception)
     {
         context.Response.ContentType = "application/json";
-        
+
         var response = new ErrorResponse
         {
             Message = "An error occurred while processing your request.",
-            TraceId = context.TraceIdentifier
+            TraceId = context.TraceIdentifier,
         };
 
         switch (exception)
@@ -51,9 +51,7 @@ public class GlobalExceptionMiddleware
             case ValidationException validationEx:
                 context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
                 response.Message = "Validation failed";
-                response.Errors = validationEx.Errors?.ToDictionary(
-                    kvp => kvp.Key,
-                    kvp => kvp.Value.ToArray());
+                response.Errors = validationEx.Errors?.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.ToArray());
                 break;
 
             case UnauthorizedAccessException:
@@ -78,7 +76,7 @@ public class GlobalExceptionMiddleware
 
             default:
                 context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-                
+
                 // Only show detailed error information in development
                 if (_environment.IsDevelopment())
                 {
@@ -88,12 +86,11 @@ public class GlobalExceptionMiddleware
                 break;
         }
 
-        var jsonResponse = JsonSerializer.Serialize(response, new JsonSerializerOptions
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-        });
+        var jsonResponse = JsonSerializer.Serialize(
+            response,
+            new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }
+        );
 
         await context.Response.WriteAsync(jsonResponse);
     }
 }
-

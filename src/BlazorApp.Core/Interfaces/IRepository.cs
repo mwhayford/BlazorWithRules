@@ -1,5 +1,5 @@
-using BlazorApp.Core.Entities;
 using System.Linq.Expressions;
+using BlazorApp.Core.Entities;
 
 namespace BlazorApp.Core.Interfaces;
 
@@ -7,7 +7,8 @@ namespace BlazorApp.Core.Interfaces;
 /// Generic repository interface for basic CRUD operations
 /// </summary>
 /// <typeparam name="T">Entity type that inherits from BaseEntity</typeparam>
-public interface IRepository<T> where T : BaseEntity
+public interface IRepository<T>
+    where T : BaseEntity
 {
     /// <summary>
     /// Get entity by ID asynchronously

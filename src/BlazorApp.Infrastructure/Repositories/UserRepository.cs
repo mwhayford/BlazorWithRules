@@ -14,9 +14,8 @@ public class UserRepository : Repository<User>, IUserRepository
     /// Initializes a new instance of the UserRepository
     /// </summary>
     /// <param name="context">Database context</param>
-    public UserRepository(ApplicationDbContext context) : base(context)
-    {
-    }
+    public UserRepository(ApplicationDbContext context)
+        : base(context) { }
 
     /// <summary>
     /// Get user by email address
@@ -29,8 +28,7 @@ public class UserRepository : Repository<User>, IUserRepository
         if (string.IsNullOrWhiteSpace(email))
             return null;
 
-        return await _dbSet
-            .FirstOrDefaultAsync(u => u.Email.ToLower() == email.ToLower(), cancellationToken);
+        return await _dbSet.FirstOrDefaultAsync(u => u.Email.ToLower() == email.ToLower(), cancellationToken);
     }
 
     /// <summary>
@@ -78,9 +76,11 @@ public class UserRepository : Repository<User>, IUserRepository
 
         var term = searchTerm.ToLower();
         return await _dbSet
-            .Where(u => u.FirstName.ToLower().Contains(term) ||
-                       u.LastName.ToLower().Contains(term) ||
-                       u.Email.ToLower().Contains(term))
+            .Where(u =>
+                u.FirstName.ToLower().Contains(term)
+                || u.LastName.ToLower().Contains(term)
+                || u.Email.ToLower().Contains(term)
+            )
             .OrderBy(u => u.LastName)
             .ThenBy(u => u.FirstName)
             .ToListAsync(cancellationToken);
@@ -110,7 +110,7 @@ public class UserRepository : Repository<User>, IUserRepository
     {
         return await _dbSet
             .Include(u => u.Orders)
-                .ThenInclude(o => o.OrderItems)
+            .ThenInclude(o => o.OrderItems)
             .FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
     }
 

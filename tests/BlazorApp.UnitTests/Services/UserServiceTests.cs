@@ -34,7 +34,8 @@ public class UserServiceTestsFixed : TestBase
             _mockUserRepository.Object,
             _mockCacheService.Object,
             _mockValidator.Object,
-            _mockLogger.Object);
+            _mockLogger.Object
+        );
     }
 
     [Fact]
@@ -42,10 +43,8 @@ public class UserServiceTestsFixed : TestBase
     {
         // Arrange
         var expectedUsers = Fixture.CreateMany<User>(3).ToList();
-        _mockCacheService.Setup(x => x.GetOrSetAsync(
-                "all_users",
-                It.IsAny<Func<Task<List<User>>>>(),
-                It.IsAny<TimeSpan>()))
+        _mockCacheService
+            .Setup(x => x.GetOrSetAsync("all_users", It.IsAny<Func<Task<List<User>>>>(), It.IsAny<TimeSpan>()))
             .ReturnsAsync(expectedUsers);
 
         // Act
@@ -61,14 +60,11 @@ public class UserServiceTestsFixed : TestBase
     {
         // Arrange
         var expectedUsers = Fixture.CreateMany<User>(3).ToList();
-        _mockCacheService.Setup(x => x.GetOrSetAsync(
-                "all_users",
-                It.IsAny<Func<Task<List<User>>>>(),
-                It.IsAny<TimeSpan>()))
+        _mockCacheService
+            .Setup(x => x.GetOrSetAsync("all_users", It.IsAny<Func<Task<List<User>>>>(), It.IsAny<TimeSpan>()))
             .Returns<string, Func<Task<List<User>>>, TimeSpan>(async (key, factory, expiration) => await factory());
 
-        _mockUserRepository.Setup(x => x.GetAllAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(expectedUsers);
+        _mockUserRepository.Setup(x => x.GetAllAsync(It.IsAny<CancellationToken>())).ReturnsAsync(expectedUsers);
 
         // Act
         var result = await _userService.GetAllUsersAsync();
@@ -86,13 +82,12 @@ public class UserServiceTestsFixed : TestBase
         var expectedUser = Fixture.Create<User>();
         var userId = expectedUser.Id;
 
-        _mockCacheService.Setup(x => x.GetOrSetAsync(
-                $"user_{userId}",
-                It.IsAny<Func<Task<User?>>>(),
-                It.IsAny<TimeSpan>()))
+        _mockCacheService
+            .Setup(x => x.GetOrSetAsync($"user_{userId}", It.IsAny<Func<Task<User?>>>(), It.IsAny<TimeSpan>()))
             .Returns<string, Func<Task<User?>>, TimeSpan>(async (key, factory, expiration) => await factory());
 
-        _mockUserRepository.Setup(x => x.GetByIdAsync(userId, It.IsAny<CancellationToken>()))
+        _mockUserRepository
+            .Setup(x => x.GetByIdAsync(userId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedUser);
 
         // Act
@@ -109,14 +104,11 @@ public class UserServiceTestsFixed : TestBase
         // Arrange
         var userId = Fixture.Create<int>();
 
-        _mockCacheService.Setup(x => x.GetOrSetAsync(
-                $"user_{userId}",
-                It.IsAny<Func<Task<User?>>>(),
-                It.IsAny<TimeSpan>()))
+        _mockCacheService
+            .Setup(x => x.GetOrSetAsync($"user_{userId}", It.IsAny<Func<Task<User?>>>(), It.IsAny<TimeSpan>()))
             .Returns<string, Func<Task<User?>>, TimeSpan>(async (key, factory, expiration) => await factory());
 
-        _mockUserRepository.Setup(x => x.GetByIdAsync(userId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync((User?)null);
+        _mockUserRepository.Setup(x => x.GetByIdAsync(userId, It.IsAny<CancellationToken>())).ReturnsAsync((User?)null);
 
         // Act
         var result = await _userService.GetUserByIdAsync(userId);
@@ -133,14 +125,13 @@ public class UserServiceTestsFixed : TestBase
         var user = Fixture.Create<User>();
         var validationResult = new FluentValidation.Results.ValidationResult();
 
-        _mockValidator.Setup(x => x.ValidateAsync(user, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(validationResult);
+        _mockValidator.Setup(x => x.ValidateAsync(user, It.IsAny<CancellationToken>())).ReturnsAsync(validationResult);
 
-        _mockUserRepository.Setup(x => x.GetByEmailAsync(user.Email, It.IsAny<CancellationToken>()))
+        _mockUserRepository
+            .Setup(x => x.GetByEmailAsync(user.Email, It.IsAny<CancellationToken>()))
             .ReturnsAsync((User?)null);
 
-        _mockUserRepository.Setup(x => x.AddAsync(user, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(user);
+        _mockUserRepository.Setup(x => x.AddAsync(user, It.IsAny<CancellationToken>())).ReturnsAsync(user);
 
         // Act
         var result = await _userService.CreateUserAsync(user);
@@ -159,8 +150,7 @@ public class UserServiceTestsFixed : TestBase
         var validationResult = new FluentValidation.Results.ValidationResult();
         validationResult.Errors.Add(new FluentValidation.Results.ValidationFailure("Email", "Email is required"));
 
-        _mockValidator.Setup(x => x.ValidateAsync(user, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(validationResult);
+        _mockValidator.Setup(x => x.ValidateAsync(user, It.IsAny<CancellationToken>())).ReturnsAsync(validationResult);
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<ValidationException>(() => _userService.CreateUserAsync(user));
@@ -180,10 +170,10 @@ public class UserServiceTestsFixed : TestBase
 
         var validationResult = new FluentValidation.Results.ValidationResult();
 
-        _mockValidator.Setup(x => x.ValidateAsync(user, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(validationResult);
+        _mockValidator.Setup(x => x.ValidateAsync(user, It.IsAny<CancellationToken>())).ReturnsAsync(validationResult);
 
-        _mockUserRepository.Setup(x => x.GetByEmailAsync(user.Email, It.IsAny<CancellationToken>()))
+        _mockUserRepository
+            .Setup(x => x.GetByEmailAsync(user.Email, It.IsAny<CancellationToken>()))
             .ReturnsAsync(existingUser);
 
         // Act & Assert
@@ -199,11 +189,9 @@ public class UserServiceTestsFixed : TestBase
     {
         // Arrange
         var originalStatus = user.IsActive;
-        _mockUserRepository.Setup(x => x.GetByIdAsync(user.Id, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(user);
+        _mockUserRepository.Setup(x => x.GetByIdAsync(user.Id, It.IsAny<CancellationToken>())).ReturnsAsync(user);
 
-        _mockUserRepository.Setup(x => x.UpdateAsync(user, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(user);
+        _mockUserRepository.Setup(x => x.UpdateAsync(user, It.IsAny<CancellationToken>())).ReturnsAsync(user);
 
         // Act
         var result = await _userService.ToggleUserStatusAsync(user.Id);
@@ -221,8 +209,7 @@ public class UserServiceTestsFixed : TestBase
     {
         // Arrange
         var userId = Fixture.Create<int>();
-        _mockUserRepository.Setup(x => x.GetByIdAsync(userId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync((User?)null);
+        _mockUserRepository.Setup(x => x.GetByIdAsync(userId, It.IsAny<CancellationToken>())).ReturnsAsync((User?)null);
 
         // Act
         var result = await _userService.ToggleUserStatusAsync(userId);
@@ -238,10 +225,8 @@ public class UserServiceTestsFixed : TestBase
     {
         // Arrange
         var expectedCount = 5;
-        _mockCacheService.Setup(x => x.GetOrSetValueAsync(
-                "user_count",
-                It.IsAny<Func<Task<int>>>(),
-                It.IsAny<TimeSpan>()))
+        _mockCacheService
+            .Setup(x => x.GetOrSetValueAsync("user_count", It.IsAny<Func<Task<int>>>(), It.IsAny<TimeSpan>()))
             .ReturnsAsync(expectedCount);
 
         // Act
@@ -257,14 +242,11 @@ public class UserServiceTestsFixed : TestBase
     {
         // Arrange
         var expectedCount = 5;
-        _mockCacheService.Setup(x => x.GetOrSetValueAsync(
-                "user_count",
-                It.IsAny<Func<Task<int>>>(),
-                It.IsAny<TimeSpan>()))
+        _mockCacheService
+            .Setup(x => x.GetOrSetValueAsync("user_count", It.IsAny<Func<Task<int>>>(), It.IsAny<TimeSpan>()))
             .Returns<string, Func<Task<int>>, TimeSpan>(async (key, factory, expiration) => await factory());
 
-        _mockUserRepository.Setup(x => x.CountAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(expectedCount);
+        _mockUserRepository.Setup(x => x.CountAsync(It.IsAny<CancellationToken>())).ReturnsAsync(expectedCount);
 
         // Act
         var result = await _userService.GetUserCountAsync();

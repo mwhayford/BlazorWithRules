@@ -15,17 +15,17 @@ public record UserDto
     /// <summary>
     /// User first name
     /// </summary>
-    public required string FirstName { get; init; }
+    required public string FirstName { get; init; }
 
     /// <summary>
     /// User last name
     /// </summary>
-    public required string LastName { get; init; }
+    required public string LastName { get; init; }
 
     /// <summary>
     /// User email address
     /// </summary>
-    public required string Email { get; init; }
+    required public string Email { get; init; }
 
     /// <summary>
     /// User full name (computed property)

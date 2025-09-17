@@ -1,8 +1,8 @@
+using System.Linq.Expressions;
 using BlazorApp.Core.Entities;
 using BlazorApp.Core.Interfaces;
 using BlazorApp.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
-using System.Linq.Expressions;
 
 namespace BlazorApp.Infrastructure.Repositories;
 
@@ -10,7 +10,8 @@ namespace BlazorApp.Infrastructure.Repositories;
 /// Generic repository implementation
 /// </summary>
 /// <typeparam name="T">Entity type that inherits from BaseEntity</typeparam>
-public class Repository<T> : IRepository<T> where T : BaseEntity
+public class Repository<T> : IRepository<T>
+    where T : BaseEntity
 {
     protected readonly ApplicationDbContext _context;
     protected readonly DbSet<T> _dbSet;
@@ -52,7 +53,10 @@ public class Repository<T> : IRepository<T> where T : BaseEntity
     /// <param name="expression">Filter expression</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Collection of entities matching the criteria</returns>
-    public virtual async Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> expression, CancellationToken cancellationToken = default)
+    public virtual async Task<IEnumerable<T>> FindAsync(
+        Expression<Func<T, bool>> expression,
+        CancellationToken cancellationToken = default
+    )
     {
         return await _dbSet.Where(expression).ToListAsync(cancellationToken);
     }
@@ -102,7 +106,7 @@ public class Repository<T> : IRepository<T> where T : BaseEntity
         // Soft delete
         entity.IsDeleted = true;
         entity.DeletedAt = DateTime.UtcNow;
-        
+
         await UpdateAsync(entity, cancellationToken);
         return true;
     }
@@ -133,12 +137,13 @@ public class Repository<T> : IRepository<T> where T : BaseEntity
     /// <param name="pageSize">Page size</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Paged collection of entities</returns>
-    public virtual async Task<IEnumerable<T>> GetPagedAsync(int pageNumber, int pageSize, CancellationToken cancellationToken = default)
+    public virtual async Task<IEnumerable<T>> GetPagedAsync(
+        int pageNumber,
+        int pageSize,
+        CancellationToken cancellationToken = default
+    )
     {
-        return await _dbSet
-            .Skip((pageNumber - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync(cancellationToken);
+        return await _dbSet.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync(cancellationToken);
     }
 
     /// <summary>
