@@ -1,4 +1,4 @@
-version: '3.8'
+# Docker Compose file for BlazorWithRules development environment
 
 services:
   # SQL Server Database
@@ -18,7 +18,7 @@ services:
       - blazorwithrules-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P YourStrong@Passw0rd -Q 'SELECT 1' || exit 1"]
+      test: ["CMD-SHELL", "timeout 5 bash -c '</dev/tcp/localhost/1433' || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5

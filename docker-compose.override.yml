@@ -1,8 +1,6 @@
 # Development overrides for docker-compose.yml
 # This file is automatically loaded by docker-compose for development
 
-version: '3.8'
-
 services:
   # Override app service for development
   app:
@@ -19,14 +17,15 @@ services:
       - /app/node_modules
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_URLS=http://+:80;https://+:443
+      - ASPNETCORE_URLS=http://+:80
       - DOTNET_USE_POLLING_FILE_WATCHER=true
       - ConnectionStrings__DefaultConnection=Server=sqlserver,1433;Database=BlazorWithRules;User Id=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=true;MultipleActiveResultSets=true
       - ConnectionStrings__Redis=redis:6379
-    command: ["dotnet", "watch", "run", "--project", "src/BlazorApp.Web/BlazorApp.Web.csproj"]
+      - ASPNETCORE_HTTPS_PORT=
+    working_dir: /app/build
+    command: ["dotnet", "BlazorApp.Web.dll"]
     ports:
       - "5000:80"
-      - "5001:443"
       - "5002:5002"  # Additional port for debugging
 
   # Override SQL Server for development

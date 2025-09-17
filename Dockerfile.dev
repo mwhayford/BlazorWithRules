@@ -37,9 +37,9 @@ COPY . .
 WORKDIR /src
 RUN npm install
 
-# Build the application
+# Publish the application (includes static files)
 WORKDIR /src/src/BlazorApp.Web
-RUN dotnet build "BlazorApp.Web.csproj" -c Release -o /app/build
+RUN dotnet publish "BlazorApp.Web.csproj" -c Release -o /app/build /p:UseAppHost=false
 
 FROM build AS publish
 RUN dotnet publish "BlazorApp.Web.csproj" -c Release -o /app/publish /p:UseAppHost=false
@@ -58,6 +58,9 @@ RUN apt-get update && apt-get install -y \
 # Copy published application
 COPY --from=publish /app/publish .
 
+# Copy the lib directory from local source to ensure Bootstrap files are available
+COPY src/BlazorApp.Web/wwwroot/lib ./wwwroot/lib
+
 # Set up development environment
 ENV ASPNETCORE_ENVIRONMENT=Development
 ENV ASPNETCORE_URLS=http://+:80;https://+:443
@@ -67,4 +70,12 @@ RUN groupadd -r appuser && useradd -r -g appuser appuser
 RUN chown -R appuser:appuser /app
 USER appuser
 
-ENTRYPOINT ["dotnet", "BlazorApp.Web.dll"]
+# Create a startup script that generates the certificate and runs the app
+RUN echo '#!/bin/bash\n\
+echo "Generating HTTPS development certificate..."\n\
+dotnet dev-certs https --trust\n\
+echo "Starting Blazor application..."\n\
+exec dotnet BlazorApp.Web.dll' > /app/start.sh && \
+chmod +x /app/start.sh
+
+ENTRYPOINT ["/app/start.sh"]
