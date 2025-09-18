@@ -31,6 +31,11 @@ public class ApplicationDbContext : DbContext
     public DbSet<OrderItem> OrderItems { get; set; }
 
     /// <summary>
+    /// Loan Applications DbSet
+    /// </summary>
+    public DbSet<LoanApplication> LoanApplications { get; set; }
+
+    /// <summary>
     /// Configure the model and relationships
     /// </summary>
     /// <param name="modelBuilder">Model builder</param>
@@ -106,6 +111,61 @@ public class ApplicationDbContext : DbContext
                 .WithMany(e => e.OrderItems)
                 .HasForeignKey(e => e.OrderId)
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // Configure LoanApplication entity
+        modelBuilder.Entity<LoanApplication>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.ApplicationNumber).IsUnique();
+            entity.HasIndex(e => e.Email);
+            entity.HasIndex(e => e.Status);
+            entity.HasIndex(e => e.CreatedAt);
+
+            // Basic loan information
+            entity.Property(e => e.ApplicationNumber).IsRequired().HasMaxLength(20);
+            entity.Property(e => e.Status).IsRequired().HasMaxLength(50).HasDefaultValue("Draft");
+            entity.Property(e => e.RequestedAmount).IsRequired().HasPrecision(18, 2);
+            entity.Property(e => e.TermInMonths).IsRequired();
+            entity.Property(e => e.LoanPurpose).IsRequired().HasMaxLength(100);
+
+            // Demographics
+            entity.Property(e => e.FirstName).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.LastName).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.MiddleName).HasMaxLength(50);
+            entity.Property(e => e.DateOfBirth).IsRequired();
+            entity.Property(e => e.SocialSecurityNumber).IsRequired().HasMaxLength(20);
+            entity.Property(e => e.Email).IsRequired().HasMaxLength(256);
+            entity.Property(e => e.PhoneNumber).IsRequired().HasMaxLength(20);
+            entity.Property(e => e.StreetAddress).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.City).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.State).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.ZipCode).IsRequired().HasMaxLength(10);
+            entity.Property(e => e.ResidenceDurationMonths).IsRequired();
+            entity.Property(e => e.HousingStatus).IsRequired().HasMaxLength(20);
+
+            // Income information
+            entity.Property(e => e.EmploymentStatus).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.EmployerName).HasMaxLength(200);
+            entity.Property(e => e.JobTitle).HasMaxLength(100);
+            entity.Property(e => e.MonthlyGrossIncome).IsRequired().HasPrecision(18, 2);
+            entity.Property(e => e.AdditionalMonthlyIncome).HasPrecision(18, 2).HasDefaultValue(0);
+            entity.Property(e => e.AdditionalIncomeDescription).HasMaxLength(500);
+            entity.Property(e => e.MonthlyHousingPayment).IsRequired().HasPrecision(18, 2);
+            entity.Property(e => e.OtherMonthlyDebtPayments).HasPrecision(18, 2).HasDefaultValue(0);
+
+            // TILA information
+            entity.Property(e => e.AnnualPercentageRate).IsRequired().HasPrecision(5, 2);
+            entity.Property(e => e.FinanceCharge).IsRequired().HasPrecision(18, 2);
+            entity.Property(e => e.TotalAmountToBePaid).IsRequired().HasPrecision(18, 2);
+            entity.Property(e => e.MonthlyPaymentAmount).IsRequired().HasPrecision(18, 2);
+            entity.Property(e => e.TilaAcknowledged).IsRequired();
+            entity.Property(e => e.SubmissionIpAddress).HasMaxLength(45);
+            entity.Property(e => e.UserAgent).HasMaxLength(500);
+            entity.Property(e => e.Notes).HasMaxLength(2000);
+
+            // Global query filter for soft delete
+            entity.HasQueryFilter(e => !e.IsDeleted);
         });
 
         // Apply configurations from assemblies
