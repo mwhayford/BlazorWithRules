@@ -100,8 +100,19 @@ app.Use(
         context.Response.Headers["X-Content-Type-Options"] = "nosniff";
         context.Response.Headers["X-XSS-Protection"] = "1; mode=block";
         context.Response.Headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
-        context.Response.Headers["Content-Security-Policy"] =
-            "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; img-src 'self' data: https:; font-src 'self' data: https://cdn.jsdelivr.net; connect-src 'self' https://cdn.jsdelivr.net;";
+        // Configure CSP based on environment
+        if (app.Environment.IsDevelopment())
+        {
+            // More permissive CSP for development to allow hot-reload
+            context.Response.Headers["Content-Security-Policy"] =
+                "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; img-src 'self' data: https:; font-src 'self' data: https://cdn.jsdelivr.net; connect-src 'self' https://cdn.jsdelivr.net ws://localhost:* wss://localhost:*;";
+        }
+        else
+        {
+            // Strict CSP for production
+            context.Response.Headers["Content-Security-Policy"] =
+                "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; img-src 'self' data: https:; font-src 'self' data: https://cdn.jsdelivr.net; connect-src 'self' https://cdn.jsdelivr.net;";
+        }
 
         await next();
     }

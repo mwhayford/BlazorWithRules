@@ -1,0 +1,314 @@
+@using System.ComponentModel.DataAnnotations
+@using BlazorApp.Web.Components.Pages
+@using BlazorApp.Core.Services
+@using BlazorApp.Shared.Exceptions
+
+<div class="loan-step">
+    <div class="step-header mb-4">
+        <h3 class="h4 mb-2">Step 3: TILA Disclosure</h3>
+        <p class="text-muted">Review your loan terms and acknowledge the Truth in Lending Act disclosure.</p>
+    </div>
+
+    <!-- Validation Errors Display -->
+    @if (ValidationErrors.Any())
+    {
+        <div class="alert alert-danger mb-4">
+            <h6 class="alert-heading">
+                <i class="bi bi-exclamation-triangle"></i> Please correct the following errors:
+            </h6>
+            <ul class="mb-0">
+                @foreach (var errorGroup in ValidationErrors)
+                {
+                    @foreach (var error in errorGroup.Value)
+                    {
+                        <li>@error</li>
+                    }
+                }
+            </ul>
+        </div>
+    }
+
+    <EditForm Model="@Model" OnValidSubmit="@HandleSubmit">
+        <DataAnnotationsValidator />
+        
+        <div class="row">
+            <!-- Loan Terms Summary -->
+            <div class="col-12">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Loan Terms Summary</h5>
+                    </div>
+                    <div class="card-body">
+                        @if (LoanTerms != null)
+                        {
+                            <div class="row">
+                                <div class="col-md-3 text-center mb-3">
+                                    <div class="loan-term-item">
+                                        <h6 class="text-muted mb-1">Loan Amount</h6>
+                                        <h4 class="text-primary mb-0">$@LoanTerms.TotalAmountToBePaid.ToString("N0")</h4>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 text-center mb-3">
+                                    <div class="loan-term-item">
+                                        <h6 class="text-muted mb-1">Annual Percentage Rate</h6>
+                                        <h4 class="text-info mb-0">@LoanTerms.AnnualPercentageRate.ToString("F2")%</h4>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 text-center mb-3">
+                                    <div class="loan-term-item">
+                                        <h6 class="text-muted mb-1">Monthly Payment</h6>
+                                        <h4 class="text-success mb-0">$@LoanTerms.MonthlyPaymentAmount.ToString("N0")</h4>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 text-center mb-3">
+                                    <div class="loan-term-item">
+                                        <h6 class="text-muted mb-1">Finance Charge</h6>
+                                        <h4 class="text-warning mb-0">$@LoanTerms.FinanceCharge.ToString("N0")</h4>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            @if (!LoanTerms.IsApproved)
+                            {
+                                <div class="alert alert-danger">
+                                    <i class="bi bi-exclamation-triangle"></i>
+                                    <strong>Loan Not Approved:</strong> @LoanTerms.Message
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="alert alert-success">
+                                    <i class="bi bi-check-circle"></i>
+                                    <strong>Loan Approved:</strong> @LoanTerms.Message
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="text-center">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Calculating loan terms...</span>
+                                </div>
+                                <p class="mt-2 text-muted">Calculating loan terms...</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- TILA Disclosure -->
+            <div class="col-12">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Truth in Lending Act (TILA) Disclosure</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="tila-disclosure">
+                            <h6>Important Information About Your Loan</h6>
+                            <p>Federal law requires us to provide you with this information about your loan. Please read it carefully.</p>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <table class="table table-sm">
+                                        <tbody>
+                                            <tr>
+                                                <td><strong>Amount Financed:</strong></td>
+                                                <td>$@(LoanTerms?.TotalAmountToBePaid - LoanTerms?.FinanceCharge ?? 0)</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Finance Charge:</strong></td>
+                                                <td>$@(LoanTerms?.FinanceCharge ?? 0)</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Amount of Payments:</strong></td>
+                                                <td>$@(LoanTerms?.TotalAmountToBePaid ?? 0)</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Number of Payments:</strong></td>
+                                                <td>60 months</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="col-md-6">
+                                    <table class="table table-sm">
+                                        <tbody>
+                                            <tr>
+                                                <td><strong>Annual Percentage Rate:</strong></td>
+                                                <td>@(LoanTerms?.AnnualPercentageRate.ToString("F2") ?? "0.00")%</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Monthly Payment:</strong></td>
+                                                <td>$@(LoanTerms?.MonthlyPaymentAmount.ToString("N0") ?? "0")</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Total of Payments:</strong></td>
+                                                <td>$@(LoanTerms?.TotalAmountToBePaid.ToString("N0") ?? "0")</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <div class="mt-4">
+                                <h6>Your Rights</h6>
+                                <ul>
+                                    <li>You have the right to receive a copy of this disclosure.</li>
+                                    <li>You have the right to cancel this loan within 3 business days of receiving this disclosure.</li>
+                                    <li>You have the right to prepay this loan at any time without penalty.</li>
+                                    <li>If you have any questions about this loan, please contact us immediately.</li>
+                                </ul>
+                            </div>
+
+                            <div class="mt-4">
+                                <h6>Important Notices</h6>
+                                <ul>
+                                    <li>This loan is subject to credit approval.</li>
+                                    <li>Interest rates may change based on market conditions.</li>
+                                    <li>Late payments may result in additional fees.</li>
+                                    <li>Default on this loan may result in collection activities.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Acknowledgment -->
+            <div class="col-12">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Acknowledgment</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-check">
+                            <InputCheckbox @bind-Value="Model.TilaAcknowledged" 
+                                          @onchange="HandleCheckboxChange"
+                                          class="form-check-input" 
+                                          id="tilaAcknowledged" />
+                            <label class="form-check-label" for="tilaAcknowledged">
+                                <strong>I acknowledge that I have read and understand the Truth in Lending Act disclosure above.</strong>
+                            </label>
+                            <ValidationMessage For="@(() => Model.TilaAcknowledged)" class="text-danger" />
+                        </div>
+                        
+                        <div class="form-check mt-3">
+                            <InputCheckbox @bind-Value="Model.AgreementToTerms" 
+                                          @onchange="HandleCheckboxChange"
+                                          class="form-check-input" 
+                                          id="agreementToTerms" />
+                            <label class="form-check-label" for="agreementToTerms">
+                                <strong>I agree to the terms and conditions of this loan application.</strong>
+                            </label>
+                            <ValidationMessage For="@(() => Model.AgreementToTerms)" class="text-danger" />
+                        </div>
+
+                        <div class="form-check mt-3">
+                            <InputCheckbox @bind-Value="Model.AuthorizationToVerify" 
+                                          @onchange="HandleCheckboxChange"
+                                          class="form-check-input" 
+                                          id="authorizationToVerify" />
+                            <label class="form-check-label" for="authorizationToVerify">
+                                <strong>I authorize the lender to verify my employment, income, and credit information.</strong>
+                            </label>
+                            <ValidationMessage For="@(() => Model.AuthorizationToVerify)" class="text-danger" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Final Review -->
+            <div class="col-12">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Final Review</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted">
+                            Please review all information carefully before submitting your application. 
+                            Once submitted, you will receive a confirmation email with your application number.
+                        </p>
+                        
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i>
+                            <strong>Next Steps:</strong>
+                            <ul class="mb-0 mt-2">
+                                <li>Your application will be reviewed by our loan team</li>
+                                <li>You may be contacted for additional information</li>
+                                <li>You will receive a decision within 2-3 business days</li>
+                                <li>If approved, you will receive loan documents to sign</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="d-flex justify-content-between">
+            <button type="button" class="btn btn-outline-secondary" @onclick="OnPrevious">
+                <i class="bi bi-arrow-left"></i> Previous
+            </button>
+            <div>
+                <button type="button" class="btn btn-outline-danger me-2" @onclick="OnCancel">
+                    <i class="bi bi-x-circle"></i> Cancel
+                </button>
+                <button type="submit" class="btn btn-success" disabled="@(!Model.TilaAcknowledged || !Model.AgreementToTerms || !Model.AuthorizationToVerify)">
+                    <i class="bi bi-check-circle"></i> Submit Application
+                </button>
+            </div>
+        </div>
+    </EditForm>
+</div>
+
+<style>
+    .loan-term-item {
+        padding: 1rem;
+        border: 1px solid #dee2e6;
+        border-radius: 0.375rem;
+        background-color: #f8f9fa;
+    }
+
+    .tila-disclosure {
+        font-size: 0.9rem;
+        line-height: 1.5;
+    }
+
+    .tila-disclosure h6 {
+        color: #495057;
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+    }
+
+    .tila-disclosure ul {
+        margin-bottom: 1rem;
+    }
+
+    .tila-disclosure li {
+        margin-bottom: 0.25rem;
+    }
+</style>
+
+@code {
+    [Parameter] public LoanApplication.TilaData Model { get; set; } = new();
+    [Parameter] public LoanTermsCalculation? LoanTerms { get; set; }
+    [Parameter] public Dictionary<string, IEnumerable<string>> ValidationErrors { get; set; } = new();
+    [Parameter] public EventCallback<LoanApplication.TilaData> OnSubmit { get; set; }
+    [Parameter] public EventCallback OnPrevious { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+    [Parameter] public EventCallback OnClearValidationErrors { get; set; }
+
+    private async Task HandleSubmit()
+    {
+        await OnSubmit.InvokeAsync(Model);
+    }
+
+    private async Task HandleCheckboxChange()
+    {
+        // Clear validation errors when user makes changes
+        if (ValidationErrors.Any())
+        {
+            await OnClearValidationErrors.InvokeAsync();
+        }
+    }
+}

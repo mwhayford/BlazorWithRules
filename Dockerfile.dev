@@ -39,10 +39,10 @@ RUN npm install
 
 # Publish the application (includes static files)
 WORKDIR /src/src/BlazorApp.Web
-RUN dotnet publish "BlazorApp.Web.csproj" -c Release -o /app/build /p:UseAppHost=false
+RUN dotnet publish "BlazorApp.Web.csproj" -c Release -o /app/build /p:UseAppHost=false /p:RunAnalyzersDuringBuild=false
 
 FROM build AS publish
-RUN dotnet publish "BlazorApp.Web.csproj" -c Release -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "BlazorApp.Web.csproj" -c Release -o /app/publish /p:UseAppHost=false /p:RunAnalyzersDuringBuild=false
 
 FROM base AS final
 WORKDIR /app

@@ -1,5 +1,7 @@
 @page "/"
+@using BlazorApp.Core.Services
 @inject IUserRepository UserRepository
+@inject ILoanApplicationService LoanApplicationService
 @inject ApplicationDbContext DbContext
 @rendermode InteractiveServer
 
@@ -91,15 +93,15 @@
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
-                                <h6 class="card-subtitle mb-2 text-muted">Conversion Rate</h6>
-                                <h3 class="card-title mb-0">@dashboardData.ConversionRate%</h3>
+                                <h6 class="card-subtitle mb-2 text-muted">Loan Applications</h6>
+                                <h3 class="card-title mb-0">@dashboardData.TotalLoanApplications</h3>
                             </div>
                             <div class="text-info">
-                                <i class="bi bi-graph-up fs-1"></i>
+                                <i class="bi bi-bank fs-1"></i>
                             </div>
                         </div>
                         <small class="text-success">
-                            <i class="bi bi-arrow-up"></i> +5% from last month
+                            <i class="bi bi-arrow-up"></i> +@dashboardData.NewApplicationsThisWeek this week
                         </small>
                     </div>
                 </div>
@@ -264,6 +266,11 @@
             dashboardData.TotalRevenue = await DbContext.Orders.SumAsync(o => o.TotalAmount);
             dashboardData.ConversionRate = 2.4m; // Mock data
 
+            // Load loan application metrics
+            var loanStats = await LoanApplicationService.GetStatisticsAsync();
+            dashboardData.TotalLoanApplications = (int)loanStats["TotalApplications"];
+            dashboardData.NewApplicationsThisWeek = (int)loanStats["ApplicationsThisWeek"];
+
             // Load recent users
             recentUsers = await DbContext.Users
                 .OrderByDescending(u => u.CreatedAt)
@@ -291,5 +298,7 @@
         public int ActiveOrders { get; set; }
         public decimal TotalRevenue { get; set; }
         public decimal ConversionRate { get; set; }
+        public int TotalLoanApplications { get; set; }
+        public int NewApplicationsThisWeek { get; set; }
     }
 }
