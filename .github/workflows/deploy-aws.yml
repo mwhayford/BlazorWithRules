@@ -20,6 +20,19 @@ on:
 env:
   AWS_REGION: us-east-1
   ECR_REPOSITORY: blazorwithrules
+  # Application Secrets
+  GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+  GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+  # Database Configuration
+  SQLSERVER_PASSWORD: ${{ secrets.SQLSERVER_PASSWORD }}
+  SQLSERVER_USERNAME: ${{ secrets.SQLSERVER_USERNAME }}
+  SQLSERVER_DATABASE: ${{ secrets.SQLSERVER_DATABASE }}
+  SQLSERVER_SERVER: ${{ secrets.SQLSERVER_SERVER }}
+  # Redis Configuration
+  REDIS_SERVER: ${{ secrets.REDIS_SERVER }}
+  REDIS_PORT: ${{ secrets.REDIS_PORT }}
+  # Environment Configuration
+  ASPNETCORE_ENVIRONMENT: ${{ secrets.ASPNETCORE_ENVIRONMENT }}
 
 jobs:
   test:

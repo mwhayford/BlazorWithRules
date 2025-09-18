@@ -58,9 +58,9 @@ docker-compose exec app dotnet ef database update --project src/BlazorApp.Infras
 
 - **Port**: 1433
 - **Username**: `sa`
-- **Password**: `YourStrong@Passw0rd`
+- **Password**: `[REDACTED_PASSWORD]`
 - **Database**: `BlazorWithRules`
-- **Connection String**: `Server=localhost,1433;Database=BlazorWithRules;User Id=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=true`
+- **Connection String**: `Server=localhost,1433;Database=BlazorWithRules;User Id=sa;Password=[REDACTED_PASSWORD];TrustServerCertificate=true`
 
 ### Redis
 
@@ -121,7 +121,7 @@ docker-compose exec app dotnet ef database update
 docker-compose exec app dotnet test
 
 # Access database
-docker-compose exec sqlserver /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P YourStrong@Passw0rd
+docker-compose exec sqlserver /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P [REDACTED_PASSWORD]
 ```
 
 ## 🔍 Troubleshooting
@@ -144,7 +144,7 @@ netstat -ano | findstr :5000
 
 ```bash
 # Check if SQL Server is ready
-docker-compose exec sqlserver /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P YourStrong@Passw0rd -Q "SELECT 1"
+docker-compose exec sqlserver /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P [REDACTED_PASSWORD] -Q "SELECT 1"
 
 # Reset database
 docker-compose down -v
@@ -190,7 +190,7 @@ docker-compose up -d
 
 ⚠️ **Important**: The default passwords are for development only!
 
-- **SQL Server SA Password**: `YourStrong@Passw0rd`
+- **SQL Server SA Password**: `[REDACTED_PASSWORD]`
 - **Application User Password**: `BlazorApp@Passw0rd123`
 
 For production, change these passwords and use proper secrets management.

@@ -131,8 +131,12 @@ public static class DependencyInjection
         using var scope = serviceProvider.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
-        // Check if we already have data
-        if (await context.Users.AnyAsync())
+        // Check if we already have the specific users we want to seed
+        var existingEmails = await context
+            .LegacyUsers.Where(u => u.Email == "john.doe@example.com" || u.Email == "jane.smith@example.com")
+            .Select(u => u.Email)
+            .ToListAsync();
+        if (existingEmails.Count >= 2)
         {
             return; // Database has been seeded
         }
@@ -182,7 +186,7 @@ public static class DependencyInjection
             },
         };
 
-        context.Users.AddRange(users);
+        context.LegacyUsers.AddRange(users);
         await context.SaveChangesAsync();
 
         // Seed some sample orders

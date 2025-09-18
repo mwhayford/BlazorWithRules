@@ -393,3 +393,10 @@ appsettings.Local.json
 # Docker
 .dockerignore
 Dockerfile
+
+# Environment Variables (Security)
+.env
+.env.local
+.env.development
+.env.production
+config/database.json

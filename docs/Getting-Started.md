@@ -96,10 +96,10 @@ Update the connection string in `appsettings.Development.json`:
 
 ```bash
 # Run SQL Server in Docker
-docker run -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=YourStrong@Passw0rd" -p 1433:1433 --name sqlserver -d mcr.microsoft.com/mssql/server:2022-latest
+docker run -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=[REDACTED_PASSWORD]" -p 1433:1433 --name sqlserver -d mcr.microsoft.com/mssql/server:2022-latest
 
 # Update connection string
-"DefaultConnection": "Server=localhost,1433;Database=BlazorAppDb_Dev;User Id=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=true;"
+"DefaultConnection": "Server=localhost,1433;Database=BlazorAppDb_Dev;User Id=sa;Password=[REDACTED_PASSWORD];TrustServerCertificate=true;"
 ```
 
 ## Project Structure Overview

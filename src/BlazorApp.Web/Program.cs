@@ -1,10 +1,16 @@
+using BlazorApp.Core.Entities;
 using BlazorApp.Core.Interfaces;
+using BlazorApp.Core.Services;
 using BlazorApp.Core.Validators;
 using BlazorApp.Infrastructure;
+using BlazorApp.Infrastructure.Data;
 using BlazorApp.Infrastructure.Services;
+using BlazorApp.Shared.Constants;
 using BlazorApp.Web.Components;
 using BlazorApp.Web.Middleware;
 using FluentValidation;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Identity;
 using Serilog;
 using Serilog.Events;
 
@@ -49,7 +55,7 @@ builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 builder.Services.AddValidatorsFromAssemblyContaining<BlazorApp.Core.Validators.UserValidator>();
 
 // Add Health Checks
-builder.Services.AddHealthChecks().AddDbContextCheck<BlazorApp.Infrastructure.Data.ApplicationDbContext>();
+builder.Services.AddHealthChecks().AddDbContextCheck<ApplicationDbContext>();
 
 // Add Health Checks UI
 builder.Services.AddHealthChecksUI().AddInMemoryStorage();
@@ -63,6 +69,57 @@ builder.Services.AddCors(options =>
     });
 });
 
+// Add Identity services
+builder
+    .Services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
+    {
+        // Password settings
+        options.Password.RequireDigit = true;
+        options.Password.RequireLowercase = true;
+        options.Password.RequireNonAlphanumeric = false;
+        options.Password.RequireUppercase = true;
+        options.Password.RequiredLength = 8;
+        options.Password.RequiredUniqueChars = 1;
+
+        // Lockout settings
+        options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
+        options.Lockout.MaxFailedAccessAttempts = 5;
+        options.Lockout.AllowedForNewUsers = true;
+
+        // User settings
+        options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
+        options.User.RequireUniqueEmail = true;
+
+        // Sign-in settings
+        options.SignIn.RequireConfirmedEmail = false;
+        options.SignIn.RequireConfirmedPhoneNumber = false;
+    })
+    .AddEntityFrameworkStores<ApplicationDbContext>()
+    .AddDefaultTokenProviders();
+
+// Add Google Authentication
+builder
+    .Services.AddAuthentication()
+    .AddGoogle(options =>
+    {
+        options.ClientId =
+            builder.Configuration["Authentication:Google:ClientId"]
+            ?? throw new InvalidOperationException("Google ClientId not configured");
+        options.ClientSecret =
+            builder.Configuration["Authentication:Google:ClientSecret"]
+            ?? throw new InvalidOperationException("Google ClientSecret not configured");
+        options.CallbackPath = "/signin-google";
+    });
+
+// Add Authentication service
+builder.Services.AddScoped<
+    BlazorApp.Core.Services.IAuthenticationService,
+    BlazorApp.Infrastructure.Services.AuthenticationService
+>();
+
+// Add HTTP Context Accessor for authentication
+builder.Services.AddHttpContextAccessor();
+
 // Add Infrastructure services (Entity Framework, Repositories, etc.)
 builder.Services.AddInfrastructure(builder.Configuration);
 
@@ -70,7 +127,8 @@ var app = builder.Build();
 
 // Ensure database is created and seeded
 await app.Services.EnsureDatabaseAsync();
-await app.Services.SeedDataAsync();
+
+// await app.Services.SeedDataAsync();
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
@@ -119,6 +177,9 @@ app.Use(
 );
 
 app.UseCors();
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.UseAntiforgery();
 

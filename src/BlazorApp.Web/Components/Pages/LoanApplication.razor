@@ -186,7 +186,7 @@
     private IncomeData incomeData = new();
     private TilaData tilaData = new();
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
         // Initialize with default values
         demographicsData = new DemographicsData();
@@ -194,7 +194,7 @@
         tilaData = new TilaData();
     }
 
-    private async Task HandleStep1Next(DemographicsData data)
+    private void HandleStep1Next(DemographicsData data)
     {
         demographicsData = data;
         currentStep = 2;
@@ -233,7 +233,7 @@
         StateHasChanged();
     }
 
-    private async Task HandleStep2Previous()
+    private void HandleStep2Previous()
     {
         currentStep = 1;
         StateHasChanged();
@@ -312,7 +312,7 @@
         }
     }
 
-    private async Task HandleStep3Previous()
+    private void HandleStep3Previous()
     {
         currentStep = 2;
         StateHasChanged();

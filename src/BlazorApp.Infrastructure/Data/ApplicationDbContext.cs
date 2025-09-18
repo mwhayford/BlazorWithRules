@@ -1,4 +1,5 @@
 using BlazorApp.Core.Entities;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace BlazorApp.Infrastructure.Data;
@@ -6,7 +7,7 @@ namespace BlazorApp.Infrastructure.Data;
 /// <summary>
 /// Application database context
 /// </summary>
-public class ApplicationDbContext : DbContext
+public class ApplicationDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, string>
 {
     /// <summary>
     /// Initializes a new instance of the ApplicationDbContext
@@ -16,9 +17,9 @@ public class ApplicationDbContext : DbContext
         : base(options) { }
 
     /// <summary>
-    /// Users DbSet
+    /// Legacy Users DbSet (for backward compatibility)
     /// </summary>
-    public DbSet<User> Users { get; set; }
+    public DbSet<User> LegacyUsers { get; set; }
 
     /// <summary>
     /// Orders DbSet

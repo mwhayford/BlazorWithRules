@@ -1,0 +1,248 @@
+@page "/admin"
+@using BlazorApp.Core.Services
+@using BlazorApp.Shared.Constants
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = ApplicationRoles.Admin)]
+@layout AdminLayout
+@inject ILoanApplicationService LoanApplicationService
+@inject IUserService UserService
+@inject IAuthenticationService AuthService
+@rendermode InteractiveServer
+
+<PageTitle>Admin Dashboard - BlazorApp</PageTitle>
+
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Admin Dashboard</h2>
+            <div class="text-muted">
+                <i class="bi bi-calendar me-1"></i>
+                @DateTime.Now.ToString("MMMM dd, yyyy")
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (loading)
+{
+    <div class="text-center">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+}
+else
+{
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">@stats.TotalLoanApplications</h4>
+                            <p class="card-text">Total Applications</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="bi bi-file-earmark-text" style="font-size: 2rem;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">@stats.ApprovedApplications</h4>
+                            <p class="card-text">Approved</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="bi bi-check-circle" style="font-size: 2rem;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">@stats.PendingApplications</h4>
+                            <p class="card-text">Pending Review</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="bi bi-clock" style="font-size: 2rem;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">@stats.TotalUsers</h4>
+                            <p class="card-text">Total Users</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="bi bi-people" style="font-size: 2rem;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-activity me-2"></i>
+                        Recent Loan Applications
+                    </h5>
+                </div>
+                <div class="card-body">
+                    @if (recentApplications.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Application #</th>
+                                        <th>Applicant</th>
+                                        <th>Amount</th>
+                                        <th>Status</th>
+                                        <th>Date</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var app in recentApplications.Take(5))
+                                    {
+                                        <tr>
+                                            <td>@app.ApplicationNumber</td>
+                                            <td>@app.FullName</td>
+                                            <td>@app.RequestedAmount.ToString("C")</td>
+                                            <td>
+                                                <span class="badge @GetStatusBadgeClass(app.Status)">
+                                                    @app.Status
+                                                </span>
+                                            </td>
+                                            <td>@app.CreatedAt.ToString("MMM dd, yyyy")</td>
+                                            <td>
+                                                <a href="/admin/loan-applications/@app.Id" class="btn btn-sm btn-outline-primary">
+                                                    <i class="bi bi-eye"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="text-center mt-3">
+                            <a href="/admin/loan-applications" class="btn btn-primary">
+                                View All Applications
+                            </a>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-4">
+                            <i class="bi bi-inbox" style="font-size: 3rem; color: #6c757d;"></i>
+                            <p class="text-muted mt-2">No loan applications found</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-speedometer2 me-2"></i>
+                        Quick Actions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="/admin/loan-applications" class="btn btn-outline-primary">
+                            <i class="bi bi-file-earmark-text me-2"></i>
+                            Manage Applications
+                        </a>
+                        <a href="/admin/users" class="btn btn-outline-success">
+                            <i class="bi bi-people me-2"></i>
+                            Manage Users
+                        </a>
+                        <a href="/admin/settings" class="btn btn-outline-secondary">
+                            <i class="bi bi-gear me-2"></i>
+                            System Settings
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private bool loading = true;
+    private AdminDashboardStats stats = new();
+    private List<LoanApplicationDto> recentApplications = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDashboardData();
+        loading = false;
+    }
+
+    private async Task LoadDashboardData()
+    {
+        try
+        {
+            // Load loan application statistics
+            var loanStats = await LoanApplicationService.GetStatisticsAsync();
+            stats.TotalLoanApplications = Convert.ToInt32(loanStats.GetValueOrDefault("TotalApplications", 0));
+            stats.ApprovedApplications = Convert.ToInt32(loanStats.GetValueOrDefault("ApprovedApplications", 0));
+            stats.PendingApplications = Convert.ToInt32(loanStats.GetValueOrDefault("PendingApplications", 0));
+
+            // Load user statistics
+            var users = await UserService.GetAllUsersAsync();
+            stats.TotalUsers = users.Count();
+
+            // Load recent applications
+            var allApplications = await LoanApplicationService.GetAllAsync();
+            recentApplications = allApplications.OrderByDescending(a => a.CreatedAt).ToList();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading dashboard data: {ex.Message}");
+        }
+    }
+
+    private string GetStatusBadgeClass(string status)
+    {
+        return status switch
+        {
+            "Approved" => "bg-success",
+            "Rejected" => "bg-danger",
+            "Under Review" => "bg-warning",
+            "Submitted" => "bg-info",
+            "Draft" => "bg-secondary",
+            _ => "bg-secondary"
+        };
+    }
+
+    private class AdminDashboardStats
+    {
+        public int TotalLoanApplications { get; set; }
+        public int ApprovedApplications { get; set; }
+        public int PendingApplications { get; set; }
+        public int TotalUsers { get; set; }
+    }
+}

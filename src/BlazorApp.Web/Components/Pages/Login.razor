@@ -1,0 +1,70 @@
+@page "/login"
+@using Microsoft.AspNetCore.Components.Authorization
+@inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@rendermode InteractiveServer
+
+<PageTitle>Login - BlazorApp</PageTitle>
+
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-4">
+            <div class="card mt-5">
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <h2 class="h3 mb-2">Welcome to BlazorApp</h2>
+                        <p class="text-muted">Sign in to access your account</p>
+                    </div>
+
+                    @if (isLoading)
+                    {
+                        <div class="text-center">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-2">Redirecting to Google...</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-primary btn-lg" @onclick="SignInWithGoogle" disabled="@isLoading">
+                                <i class="bi bi-google me-2"></i>
+                                Sign in with Google
+                            </button>
+                        </div>
+
+                        <div class="text-center mt-4">
+                            <small class="text-muted">
+                                By signing in, you agree to our Terms of Service and Privacy Policy
+                            </small>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private bool isLoading = false;
+
+    private async Task SignInWithGoogle()
+    {
+        isLoading = true;
+        StateHasChanged();
+
+        try
+        {
+            // Redirect to Google OAuth
+            Navigation.NavigateTo("/signin-google", forceLoad: true);
+        }
+        catch (Exception ex)
+        {
+            // Handle error
+            Console.WriteLine($"Error during Google sign-in: {ex.Message}");
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+}

@@ -195,7 +195,7 @@ public class UserRepositoryTests : DatabaseIntegrationTestBase
         result.Should().BeTrue();
 
         // Verify user is soft deleted
-        var deletedUser = await _context.Users.FindAsync(savedUser.Id);
+        var deletedUser = await _context.LegacyUsers.FindAsync(savedUser.Id);
         deletedUser!.IsDeleted.Should().BeTrue();
         deletedUser.DeletedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(10));
 
