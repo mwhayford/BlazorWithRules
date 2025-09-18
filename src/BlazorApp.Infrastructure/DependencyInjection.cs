@@ -62,12 +62,32 @@ public static class DependencyInjection
         // Add repositories
         services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<ILoanApplicationRepository, LoanApplicationRepository>();
 
         // Register cache service
         services.AddScoped<ICacheService, CacheService>();
 
+        // Register validators and their wrappers
+        services.AddScoped<Core.Validators.LoanApplicationValidator>();
+        services.AddScoped<Core.Validators.CreateLoanApplicationValidator>();
+        services.AddScoped<Core.Validators.UpdateLoanApplicationStatusValidator>();
+
+        // Register wrapper implementations using factory methods
+        services.AddScoped<LoanApplicationValidatorWrapper>(provider => new LoanApplicationValidatorWrapper(
+            provider.GetRequiredService<Core.Validators.LoanApplicationValidator>()
+        ));
+        services.AddScoped<CreateLoanApplicationValidatorWrapper>(provider => new CreateLoanApplicationValidatorWrapper(
+            provider.GetRequiredService<Core.Validators.CreateLoanApplicationValidator>()
+        ));
+        services.AddScoped<UpdateLoanApplicationStatusValidatorWrapper>(
+            provider => new UpdateLoanApplicationStatusValidatorWrapper(
+                provider.GetRequiredService<Core.Validators.UpdateLoanApplicationStatusValidator>()
+            )
+        );
+
         // Register services
         services.AddScoped<IUserService, UserService>();
+        services.AddScoped<ILoanApplicationService, LoanApplicationService>();
 
         return services;
     }

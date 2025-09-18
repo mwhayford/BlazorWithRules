@@ -1,0 +1,290 @@
+@using System.ComponentModel.DataAnnotations
+@using BlazorApp.Web.Components.Pages
+
+<div class="loan-step">
+    <div class="step-header mb-4">
+        <h3 class="h4 mb-2">Step 1: Personal Information</h3>
+        <p class="text-muted">Please provide your basic demographic information and loan details.</p>
+    </div>
+
+    <EditForm Model="@Model" OnValidSubmit="@HandleSubmit">
+        <DataAnnotationsValidator />
+        
+        <div class="row">
+            <!-- Loan Information -->
+            <div class="col-12">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Loan Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="requestedAmount" class="form-label">Requested Loan Amount *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <InputNumber @bind-Value="Model.RequestedAmount" 
+                                               class="form-control" 
+                                               id="requestedAmount"
+                                               placeholder="25000" />
+                                </div>
+                                <ValidationMessage For="@(() => Model.RequestedAmount)" class="text-danger" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="termInMonths" class="form-label">Loan Term *</label>
+                                <div class="input-group">
+                                    <InputNumber @bind-Value="Model.TermInMonths" 
+                                               class="form-control" 
+                                               id="termInMonths"
+                                               placeholder="60" />
+                                    <span class="input-group-text">months</span>
+                                </div>
+                                <ValidationMessage For="@(() => Model.TermInMonths)" class="text-danger" />
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12 mb-3">
+                                <label for="loanPurpose" class="form-label">Purpose of Loan *</label>
+                                <InputSelect @bind-Value="Model.LoanPurpose" class="form-select" id="loanPurpose">
+                                    <option value="">Select loan purpose</option>
+                                    <option value="Home Purchase">Home Purchase</option>
+                                    <option value="Home Refinance">Home Refinance</option>
+                                    <option value="Auto Loan">Auto Loan</option>
+                                    <option value="Personal Loan">Personal Loan</option>
+                                    <option value="Debt Consolidation">Debt Consolidation</option>
+                                    <option value="Business Loan">Business Loan</option>
+                                    <option value="Education">Education</option>
+                                    <option value="Other">Other</option>
+                                </InputSelect>
+                                <ValidationMessage For="@(() => Model.LoanPurpose)" class="text-danger" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Personal Information -->
+            <div class="col-12">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Personal Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="firstName" class="form-label">First Name *</label>
+                                <InputText @bind-Value="Model.FirstName" 
+                                         class="form-control" 
+                                         id="firstName"
+                                         placeholder="John" />
+                                <ValidationMessage For="@(() => Model.FirstName)" class="text-danger" />
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="middleName" class="form-label">Middle Name</label>
+                                <InputText @bind-Value="Model.MiddleName" 
+                                         class="form-control" 
+                                         id="middleName"
+                                         placeholder="Michael" />
+                                <ValidationMessage For="@(() => Model.MiddleName)" class="text-danger" />
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="lastName" class="form-label">Last Name *</label>
+                                <InputText @bind-Value="Model.LastName" 
+                                         class="form-control" 
+                                         id="lastName"
+                                         placeholder="Doe" />
+                                <ValidationMessage For="@(() => Model.LastName)" class="text-danger" />
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="dateOfBirth" class="form-label">Date of Birth *</label>
+                                <InputDate @bind-Value="Model.DateOfBirth" 
+                                         class="form-control" 
+                                         id="dateOfBirth" />
+                                <ValidationMessage For="@(() => Model.DateOfBirth)" class="text-danger" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="ssn" class="form-label">Social Security Number *</label>
+                                <InputText @bind-Value="Model.SocialSecurityNumber" 
+                                         class="form-control" 
+                                         id="ssn"
+                                         placeholder="123-45-6789"
+                                         maxlength="11" />
+                                <ValidationMessage For="@(() => Model.SocialSecurityNumber)" class="text-danger" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contact Information -->
+            <div class="col-12">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Contact Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="email" class="form-label">Email Address *</label>
+                                <InputText @bind-Value="Model.Email" 
+                                         class="form-control" 
+                                         id="email"
+                                         placeholder="john.doe@example.com" />
+                                <ValidationMessage For="@(() => Model.Email)" class="text-danger" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="phoneNumber" class="form-label">Phone Number *</label>
+                                <InputText @bind-Value="Model.PhoneNumber" 
+                                         class="form-control" 
+                                         id="phoneNumber"
+                                         placeholder="(555) 123-4567" />
+                                <ValidationMessage For="@(() => Model.PhoneNumber)" class="text-danger" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Address Information -->
+            <div class="col-12">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Address Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-12 mb-3">
+                                <label for="streetAddress" class="form-label">Street Address *</label>
+                                <InputText @bind-Value="Model.StreetAddress" 
+                                         class="form-control" 
+                                         id="streetAddress"
+                                         placeholder="123 Main Street" />
+                                <ValidationMessage For="@(() => Model.StreetAddress)" class="text-danger" />
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="city" class="form-label">City *</label>
+                                <InputText @bind-Value="Model.City" 
+                                         class="form-control" 
+                                         id="city"
+                                         placeholder="Anytown" />
+                                <ValidationMessage For="@(() => Model.City)" class="text-danger" />
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="state" class="form-label">State *</label>
+                                <InputSelect @bind-Value="Model.State" class="form-select" id="state">
+                                    <option value="">Select state</option>
+                                    <option value="AL">Alabama</option>
+                                    <option value="AK">Alaska</option>
+                                    <option value="AZ">Arizona</option>
+                                    <option value="AR">Arkansas</option>
+                                    <option value="CA">California</option>
+                                    <option value="CO">Colorado</option>
+                                    <option value="CT">Connecticut</option>
+                                    <option value="DE">Delaware</option>
+                                    <option value="FL">Florida</option>
+                                    <option value="GA">Georgia</option>
+                                    <option value="HI">Hawaii</option>
+                                    <option value="ID">Idaho</option>
+                                    <option value="IL">Illinois</option>
+                                    <option value="IN">Indiana</option>
+                                    <option value="IA">Iowa</option>
+                                    <option value="KS">Kansas</option>
+                                    <option value="KY">Kentucky</option>
+                                    <option value="LA">Louisiana</option>
+                                    <option value="ME">Maine</option>
+                                    <option value="MD">Maryland</option>
+                                    <option value="MA">Massachusetts</option>
+                                    <option value="MI">Michigan</option>
+                                    <option value="MN">Minnesota</option>
+                                    <option value="MS">Mississippi</option>
+                                    <option value="MO">Missouri</option>
+                                    <option value="MT">Montana</option>
+                                    <option value="NE">Nebraska</option>
+                                    <option value="NV">Nevada</option>
+                                    <option value="NH">New Hampshire</option>
+                                    <option value="NJ">New Jersey</option>
+                                    <option value="NM">New Mexico</option>
+                                    <option value="NY">New York</option>
+                                    <option value="NC">North Carolina</option>
+                                    <option value="ND">North Dakota</option>
+                                    <option value="OH">Ohio</option>
+                                    <option value="OK">Oklahoma</option>
+                                    <option value="OR">Oregon</option>
+                                    <option value="PA">Pennsylvania</option>
+                                    <option value="RI">Rhode Island</option>
+                                    <option value="SC">South Carolina</option>
+                                    <option value="SD">South Dakota</option>
+                                    <option value="TN">Tennessee</option>
+                                    <option value="TX">Texas</option>
+                                    <option value="UT">Utah</option>
+                                    <option value="VT">Vermont</option>
+                                    <option value="VA">Virginia</option>
+                                    <option value="WA">Washington</option>
+                                    <option value="WV">West Virginia</option>
+                                    <option value="WI">Wisconsin</option>
+                                    <option value="WY">Wyoming</option>
+                                </InputSelect>
+                                <ValidationMessage For="@(() => Model.State)" class="text-danger" />
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="zipCode" class="form-label">ZIP Code *</label>
+                                <InputText @bind-Value="Model.ZipCode" 
+                                         class="form-control" 
+                                         id="zipCode"
+                                         placeholder="12345" />
+                                <ValidationMessage For="@(() => Model.ZipCode)" class="text-danger" />
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="residenceDuration" class="form-label">How long have you lived at this address? *</label>
+                                <div class="input-group">
+                                    <InputNumber @bind-Value="Model.ResidenceDurationMonths" 
+                                               class="form-control" 
+                                               id="residenceDuration" />
+                                    <span class="input-group-text">months</span>
+                                </div>
+                                <ValidationMessage For="@(() => Model.ResidenceDurationMonths)" class="text-danger" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="housingStatus" class="form-label">Housing Status *</label>
+                                <InputSelect @bind-Value="Model.HousingStatus" class="form-select" id="housingStatus">
+                                    <option value="">Select housing status</option>
+                                    <option value="Own">Own</option>
+                                    <option value="Rent">Rent</option>
+                                    <option value="Other">Other</option>
+                                </InputSelect>
+                                <ValidationMessage For="@(() => Model.HousingStatus)" class="text-danger" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="d-flex justify-content-between">
+            <button type="button" class="btn btn-outline-danger" @onclick="OnCancel">
+                <i class="bi bi-x-circle"></i> Cancel
+            </button>
+            <button type="submit" class="btn btn-primary">
+                Next: Income Information <i class="bi bi-arrow-right"></i>
+            </button>
+        </div>
+    </EditForm>
+</div>
+
+@code {
+    [Parameter] public LoanApplication.DemographicsData Model { get; set; } = new();
+    [Parameter] public EventCallback<LoanApplication.DemographicsData> OnNext { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+
+    private async Task HandleSubmit()
+    {
+        await OnNext.InvokeAsync(Model);
+    }
+}

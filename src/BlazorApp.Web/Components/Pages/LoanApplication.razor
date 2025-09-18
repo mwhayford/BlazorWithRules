@@ -1,0 +1,469 @@
+@page "/loan-application"
+@using BlazorApp.Core.Services
+@using BlazorApp.Shared.Models
+@using BlazorApp.Shared.Exceptions
+@using System.ComponentModel.DataAnnotations
+@inject ILoanApplicationService LoanApplicationService
+@inject IJSRuntime JSRuntime
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+
+<PageTitle>Loan Application - BlazorApp</PageTitle>
+
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Header -->
+            <div class="text-center mb-4">
+                <h1 class="h2 mb-2">Loan Application</h1>
+                <p class="text-muted">Complete your loan application in 3 simple steps</p>
+            </div>
+
+            <!-- Progress Indicator -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-4 text-center">
+                            <div class="step-indicator @(currentStep >= 1 ? "active" : "") @(currentStep > 1 ? "completed" : "")">
+                                <div class="step-number">1</div>
+                                <div class="step-label">Demographics</div>
+                            </div>
+                        </div>
+                        <div class="col-4 text-center">
+                            <div class="step-indicator @(currentStep >= 2 ? "active" : "") @(currentStep > 2 ? "completed" : "")">
+                                <div class="step-number">2</div>
+                                <div class="step-label">Income</div>
+                            </div>
+                        </div>
+                        <div class="col-4 text-center">
+                            <div class="step-indicator @(currentStep >= 3 ? "active" : "") @(currentStep > 3 ? "completed" : "")">
+                                <div class="step-number">3</div>
+                                <div class="step-label">TILA</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Application Form -->
+            <div class="card">
+                <div class="card-body">
+                    @if (loading)
+                    {
+                        <div class="text-center">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <!-- Step 1: Demographics -->
+                        @if (currentStep == 1)
+                        {
+                            <LoanApplicationStep1 
+                                Model="@demographicsData"
+                                OnNext="@HandleStep1Next"
+                                OnCancel="@HandleCancel" />
+                        }
+
+                        <!-- Step 2: Income Information -->
+                        @if (currentStep == 2)
+                        {
+                            <LoanApplicationStep2 
+                                Model="@incomeData"
+                                OnNext="@HandleStep2Next"
+                                OnPrevious="@HandleStep2Previous"
+                                OnCancel="@HandleCancel" />
+                        }
+
+                        <!-- Step 3: TILA Disclosure -->
+                        @if (currentStep == 3)
+                        {
+                            <LoanApplicationStep3 
+                                Model="@tilaData"
+                                LoanTerms="@loanTerms"
+                                ValidationErrors="@validationErrors"
+                                OnSubmit="@HandleStep3Submit"
+                                OnPrevious="@HandleStep3Previous"
+                                OnCancel="@HandleCancel"
+                                OnClearValidationErrors="@ClearValidationErrors" />
+                        }
+
+                        <!-- Success Message -->
+                        @if (currentStep == 4)
+                        {
+                            <div class="text-center">
+                                <div class="mb-4">
+                                    <i class="bi bi-check-circle-fill text-success" style="font-size: 4rem;"></i>
+                                </div>
+                                <h3 class="text-success mb-3">Application Submitted Successfully!</h3>
+                                <p class="text-muted mb-4">
+                                    Your loan application has been submitted for review. 
+                                    You will receive an email confirmation shortly.
+                                </p>
+                                <div class="alert alert-info">
+                                    <strong>Application Number:</strong> @submittedApplicationNumber
+                                </div>
+                                <div class="d-flex justify-content-center gap-2">
+                                    <button class="btn btn-primary" @onclick="StartNewApplication">
+                                        Start New Application
+                                    </button>
+                                    <button class="btn btn-outline-secondary" @onclick="GoToDashboard">
+                                        Go to Dashboard
+                                    </button>
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .step-indicator {
+        position: relative;
+        padding: 1rem 0;
+    }
+
+    .step-number {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-color: #e9ecef;
+        color: #6c757d;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        margin: 0 auto 0.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .step-label {
+        font-size: 0.875rem;
+        color: #6c757d;
+        font-weight: 500;
+    }
+
+    .step-indicator.active .step-number {
+        background-color: #0d6efd;
+        color: white;
+    }
+
+    .step-indicator.active .step-label {
+        color: #0d6efd;
+        font-weight: 600;
+    }
+
+    .step-indicator.completed .step-number {
+        background-color: #198754;
+        color: white;
+    }
+
+    .step-indicator.completed .step-label {
+        color: #198754;
+        font-weight: 600;
+    }
+
+    .step-indicator.completed .step-number::after {
+        content: "✓";
+        font-size: 1.2rem;
+    }
+</style>
+
+@code {
+    private int currentStep = 1;
+    private bool loading = false;
+    private string submittedApplicationNumber = string.Empty;
+    private LoanTermsCalculation? loanTerms;
+    private Dictionary<string, IEnumerable<string>> validationErrors = new();
+
+    // Step data models
+    private DemographicsData demographicsData = new();
+    private IncomeData incomeData = new();
+    private TilaData tilaData = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Initialize with default values
+        demographicsData = new DemographicsData();
+        incomeData = new IncomeData();
+        tilaData = new TilaData();
+    }
+
+    private async Task HandleStep1Next(DemographicsData data)
+    {
+        demographicsData = data;
+        currentStep = 2;
+        StateHasChanged();
+    }
+
+    private async Task HandleStep2Next(IncomeData data)
+    {
+        incomeData = data;
+        
+        // Calculate loan terms
+        loading = true;
+        try
+        {
+            loanTerms = await LoanApplicationService.CalculateLoanTermsAsync(
+                demographicsData.RequestedAmount, 
+                demographicsData.TermInMonths);
+            
+            // Update TILA data with calculated terms
+            tilaData.AnnualPercentageRate = loanTerms.AnnualPercentageRate;
+            tilaData.MonthlyPaymentAmount = loanTerms.MonthlyPaymentAmount;
+            tilaData.FinanceCharge = loanTerms.FinanceCharge;
+            tilaData.TotalAmountToBePaid = loanTerms.TotalAmountToBePaid;
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("alert", $"Error calculating loan terms: {ex.Message}");
+            return;
+        }
+        finally
+        {
+            loading = false;
+        }
+        
+        currentStep = 3;
+        StateHasChanged();
+    }
+
+    private async Task HandleStep2Previous()
+    {
+        currentStep = 1;
+        StateHasChanged();
+    }
+
+    private async Task HandleStep3Submit(TilaData data)
+    {
+        tilaData = data;
+        
+        // Debug logging
+        await JSRuntime.InvokeVoidAsync("console.log", "Step 3 Submit - TilaAcknowledged:", data.TilaAcknowledged);
+        await JSRuntime.InvokeVoidAsync("console.log", "Step 3 Submit - AgreementToTerms:", data.AgreementToTerms);
+        await JSRuntime.InvokeVoidAsync("console.log", "Step 3 Submit - AuthorizationToVerify:", data.AuthorizationToVerify);
+        
+        loading = true;
+        try
+        {
+            // Create the complete loan application
+            var createDto = new CreateLoanApplicationDto
+            {
+                RequestedAmount = demographicsData.RequestedAmount,
+                TermInMonths = demographicsData.TermInMonths,
+                LoanPurpose = demographicsData.LoanPurpose,
+                FirstName = demographicsData.FirstName,
+                LastName = demographicsData.LastName,
+                MiddleName = demographicsData.MiddleName,
+                DateOfBirth = demographicsData.DateOfBirth,
+                SocialSecurityNumber = demographicsData.SocialSecurityNumber,
+                Email = demographicsData.Email,
+                PhoneNumber = demographicsData.PhoneNumber,
+                StreetAddress = demographicsData.StreetAddress,
+                City = demographicsData.City,
+                State = demographicsData.State,
+                ZipCode = demographicsData.ZipCode,
+                ResidenceDurationMonths = demographicsData.ResidenceDurationMonths,
+                HousingStatus = demographicsData.HousingStatus,
+                EmploymentStatus = incomeData.EmploymentStatus,
+                EmployerName = incomeData.EmployerName,
+                JobTitle = incomeData.JobTitle,
+                EmploymentDurationMonths = incomeData.EmploymentDurationMonths,
+                MonthlyGrossIncome = incomeData.MonthlyGrossIncome,
+                AdditionalMonthlyIncome = incomeData.AdditionalMonthlyIncome,
+                AdditionalIncomeDescription = incomeData.AdditionalIncomeDescription,
+                MonthlyHousingPayment = incomeData.MonthlyHousingPayment,
+                OtherMonthlyDebtPayments = incomeData.OtherMonthlyDebtPayments,
+                TilaAcknowledged = tilaData.TilaAcknowledged
+            };
+
+            await JSRuntime.InvokeVoidAsync("console.log", "About to call LoanApplicationService.CreateAsync");
+            
+            var application = await LoanApplicationService.CreateAsync(createDto);
+            
+            await JSRuntime.InvokeVoidAsync("console.log", "Successfully created application:", application.ApplicationNumber);
+            
+            submittedApplicationNumber = application.ApplicationNumber;
+            currentStep = 4;
+        }
+        catch (BlazorApp.Shared.Exceptions.ValidationException validationEx)
+        {
+            // Store validation errors for display
+            validationErrors = new Dictionary<string, IEnumerable<string>>(validationEx.Errors);
+            
+            // Log validation errors for debugging
+            await JSRuntime.InvokeVoidAsync("console.log", "Validation errors:", validationEx.Errors);
+            
+            // Stay on step 3 to allow user to correct errors
+            currentStep = 3;
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("alert", $"Error submitting application: {ex.Message}");
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private async Task HandleStep3Previous()
+    {
+        currentStep = 2;
+        StateHasChanged();
+    }
+
+    private void ClearValidationErrors()
+    {
+        validationErrors.Clear();
+        StateHasChanged();
+    }
+
+    private async Task HandleCancel()
+    {
+        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", 
+            "Are you sure you want to cancel your loan application? All progress will be lost.");
+        
+        if (confirmed)
+        {
+            Navigation.NavigateTo("/");
+        }
+    }
+
+    private void StartNewApplication()
+    {
+        currentStep = 1;
+        demographicsData = new DemographicsData();
+        incomeData = new IncomeData();
+        tilaData = new TilaData();
+        loanTerms = null;
+        submittedApplicationNumber = string.Empty;
+        StateHasChanged();
+    }
+
+    private void GoToDashboard()
+    {
+        Navigation.NavigateTo("/");
+    }
+
+    // Data models for each step
+    public class DemographicsData
+    {
+        [Required(ErrorMessage = "Requested amount is required")]
+        [Range(1000, 1000000, ErrorMessage = "Requested amount must be between $1,000 and $1,000,000")]
+        public decimal RequestedAmount { get; set; } = 25000;
+
+        [Required(ErrorMessage = "Loan term is required")]
+        [Range(12, 120, ErrorMessage = "Loan term must be between 12 and 120 months")]
+        public int TermInMonths { get; set; } = 60;
+
+        [Required(ErrorMessage = "Loan purpose is required")]
+        [StringLength(100, ErrorMessage = "Loan purpose must not exceed 100 characters")]
+        public string LoanPurpose { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "First name is required")]
+        [StringLength(50, ErrorMessage = "First name must not exceed 50 characters")]
+        public string FirstName { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Last name is required")]
+        [StringLength(50, ErrorMessage = "Last name must not exceed 50 characters")]
+        public string LastName { get; set; } = string.Empty;
+
+        [StringLength(50, ErrorMessage = "Middle name must not exceed 50 characters")]
+        public string? MiddleName { get; set; }
+
+        [Required(ErrorMessage = "Date of birth is required")]
+        public DateTime DateOfBirth { get; set; } = DateTime.Now.AddYears(-25);
+
+        [Required(ErrorMessage = "Social Security Number is required")]
+        [RegularExpression(@"^\d{3}-?\d{2}-?\d{4}$", ErrorMessage = "Social Security Number must be in format XXX-XX-XXXX")]
+        public string SocialSecurityNumber { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Email address is required")]
+        [EmailAddress(ErrorMessage = "Invalid email format")]
+        [StringLength(256, ErrorMessage = "Email address must not exceed 256 characters")]
+        public string Email { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Phone number is required")]
+        [RegularExpression(@"^\+?[1-9]\d{1,14}$", ErrorMessage = "Invalid phone number format")]
+        public string PhoneNumber { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Street address is required")]
+        [StringLength(200, ErrorMessage = "Street address must not exceed 200 characters")]
+        public string StreetAddress { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "City is required")]
+        [StringLength(100, ErrorMessage = "City must not exceed 100 characters")]
+        public string City { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "State is required")]
+        [StringLength(50, ErrorMessage = "State must not exceed 50 characters")]
+        public string State { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "ZIP code is required")]
+        [RegularExpression(@"^\d{5}(-\d{4})?$", ErrorMessage = "ZIP code must be in format XXXXX or XXXXX-XXXX")]
+        public string ZipCode { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Residence duration is required")]
+        [Range(0, 1200, ErrorMessage = "Residence duration must be between 0 and 1200 months")]
+        public int ResidenceDurationMonths { get; set; } = 24;
+
+        [Required(ErrorMessage = "Housing status is required")]
+        public string HousingStatus { get; set; } = "Rent";
+    }
+
+    public class IncomeData
+    {
+        [Required(ErrorMessage = "Employment status is required")]
+        [StringLength(50, ErrorMessage = "Employment status must not exceed 50 characters")]
+        public string EmploymentStatus { get; set; } = string.Empty;
+
+        [StringLength(200, ErrorMessage = "Employer name must not exceed 200 characters")]
+        public string? EmployerName { get; set; }
+
+        [StringLength(100, ErrorMessage = "Job title must not exceed 100 characters")]
+        public string? JobTitle { get; set; }
+
+        [Range(0, 1200, ErrorMessage = "Employment duration must be between 0 and 1200 months")]
+        public int? EmploymentDurationMonths { get; set; }
+
+        [Required(ErrorMessage = "Monthly gross income is required")]
+        [Range(0, 100000, ErrorMessage = "Monthly gross income must be between $0 and $100,000")]
+        public decimal MonthlyGrossIncome { get; set; }
+
+        [Range(0, 50000, ErrorMessage = "Additional monthly income must be between $0 and $50,000")]
+        public decimal AdditionalMonthlyIncome { get; set; }
+
+        [StringLength(500, ErrorMessage = "Additional income description must not exceed 500 characters")]
+        public string? AdditionalIncomeDescription { get; set; }
+
+        [Required(ErrorMessage = "Monthly housing payment is required")]
+        [Range(0, 10000, ErrorMessage = "Monthly housing payment must be between $0 and $10,000")]
+        public decimal MonthlyHousingPayment { get; set; }
+
+        [Range(0, 50000, ErrorMessage = "Other monthly debt payments must be between $0 and $50,000")]
+        public decimal OtherMonthlyDebtPayments { get; set; }
+    }
+
+    public class TilaData
+    {
+        public decimal AnnualPercentageRate { get; set; }
+        public decimal MonthlyPaymentAmount { get; set; }
+        public decimal FinanceCharge { get; set; }
+        public decimal TotalAmountToBePaid { get; set; }
+
+        [Required(ErrorMessage = "TILA acknowledgment is required")]
+        public bool TilaAcknowledged { get; set; }
+
+        [Required(ErrorMessage = "Agreement to terms is required")]
+        public bool AgreementToTerms { get; set; }
+
+        [Required(ErrorMessage = "Authorization to verify is required")]
+        public bool AuthorizationToVerify { get; set; }
+    }
+}
