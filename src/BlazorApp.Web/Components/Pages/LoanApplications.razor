@@ -1,0 +1,269 @@
+@page "/loan-applications"
+@using BlazorApp.Core.Services
+@using BlazorApp.Shared.Models
+@inject ILoanApplicationService LoanApplicationService
+@inject IJSRuntime JSRuntime
+@rendermode InteractiveServer
+
+<PageTitle>Loan Applications - BlazorApp</PageTitle>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h2 mb-1">Loan Applications</h1>
+                    <p class="text-muted mb-0">Manage all loan applications in the system</p>
+                </div>
+                <div>
+                    <button class="btn btn-primary" @onclick="RefreshApplications">
+                        <i class="bi bi-arrow-clockwise"></i> Refresh
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (loading)
+    {
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex justify-content-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- Statistics Cards -->
+        <div class="row g-3 mb-4">
+            <div class="col-xl-3 col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="me-3">
+                                <i class="bi bi-file-text fs-1 text-primary"></i>
+                            </div>
+                            <div>
+                                <h3 class="mb-0">@applications.Count</h3>
+                                <p class="text-muted mb-0">Total Applications</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="me-3">
+                                <i class="bi bi-check-circle fs-1 text-success"></i>
+                            </div>
+                            <div>
+                                <h3 class="mb-0">@applications.Count(a => a.Status == "Approved")</h3>
+                                <p class="text-muted mb-0">Approved</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="me-3">
+                                <i class="bi bi-clock fs-1 text-warning"></i>
+                            </div>
+                            <div>
+                                <h3 class="mb-0">@applications.Count(a => a.Status == "Under Review")</h3>
+                                <p class="text-muted mb-0">Under Review</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="me-3">
+                                <i class="bi bi-calendar-plus fs-1 text-info"></i>
+                            </div>
+                            <div>
+                                <h3 class="mb-0">@applications.Count(a => a.CreatedAt >= DateTime.Today.AddDays(-7))</h3>
+                                <p class="text-muted mb-0">This Week</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Applications Table -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="row align-items-center">
+                            <div class="col">
+                                <h5 class="card-title mb-0">Applications (@filteredApplications.Count())</h5>
+                            </div>
+                            <div class="col-auto">
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="bi bi-search"></i>
+                                    </span>
+                                    <input type="text" class="form-control" placeholder="Search applications..." 
+                                           @bind="searchString" @oninput="FilterApplications" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>App #</th>
+                                        <th>Applicant</th>
+                                        <th>Email</th>
+                                        <th>Amount</th>
+                                        <th>Term</th>
+                                        <th>Status</th>
+                                        <th>Created</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var application in filteredApplications.Take(25))
+                                    {
+                                        <tr>
+                                            <td>
+                                                <code>@application.ApplicationNumber</code>
+                                            </td>
+                                            <td>@application.FullName</td>
+                                            <td>
+                                                <a href="mailto:@application.Email">@application.Email</a>
+                                            </td>
+                                            <td>$@application.RequestedAmount.ToString("N0")</td>
+                                            <td>@application.TermInMonths months</td>
+                                            <td>
+                                                <span class="badge @GetStatusBadgeClass(application.Status)">
+                                                    @application.Status
+                                                </span>
+                                            </td>
+                                            <td>@application.CreatedAt.ToString("MM/dd/yyyy")</td>
+                                            <td>
+                                                <div class="btn-group btn-group-sm">
+                                                    <button class="btn btn-outline-primary" @onclick="() => ViewApplication(application)">
+                                                        <i class="bi bi-eye"></i>
+                                                    </button>
+                                                    <button class="btn btn-outline-secondary" @onclick="() => UpdateStatus(application)">
+                                                        <i class="bi bi-pencil"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        @if (filteredApplications.Count() > 25)
+                        {
+                            <div class="alert alert-info">
+                                <i class="bi bi-info-circle"></i>
+                                Showing first 25 of @filteredApplications.Count() applications. Use search to narrow results.
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private bool loading = true;
+    private List<LoanApplicationDto> applications = new();
+    private IEnumerable<LoanApplicationDto> filteredApplications => FilterApplicationList();
+    private string searchString = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadApplications();
+        loading = false;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JSRuntime.InvokeVoidAsync("console.log", "LoanApplications component rendered");
+        }
+    }
+
+    private async Task LoadApplications()
+    {
+        try
+        {
+            var allApplications = await LoanApplicationService.GetAllAsync();
+            applications = allApplications.ToList();
+        }
+        catch (Exception ex)
+        {
+            // Log error but don't use JSRuntime during prerendering
+            Console.WriteLine($"Error loading applications: {ex.Message}");
+        }
+    }
+
+    private async Task RefreshApplications()
+    {
+        loading = true;
+        await LoadApplications();
+        loading = false;
+    }
+
+    private IEnumerable<LoanApplicationDto> FilterApplicationList()
+    {
+        var result = applications.AsEnumerable();
+
+        if (!string.IsNullOrWhiteSpace(searchString))
+        {
+            result = result.Where(a => 
+                a.FullName.Contains(searchString, StringComparison.OrdinalIgnoreCase) ||
+                a.Email.Contains(searchString, StringComparison.OrdinalIgnoreCase) ||
+                a.ApplicationNumber.Contains(searchString, StringComparison.OrdinalIgnoreCase));
+        }
+
+        return result.OrderByDescending(a => a.CreatedAt);
+    }
+
+    private void FilterApplications()
+    {
+        StateHasChanged();
+    }
+
+    private string GetStatusBadgeClass(string status) => status switch
+    {
+        "Approved" => "bg-success",
+        "Rejected" => "bg-danger",
+        "Under Review" => "bg-warning text-dark",
+        "Submitted" => "bg-info",
+        "Draft" => "bg-secondary",
+        _ => "bg-light text-dark"
+    };
+
+    private async Task ViewApplication(LoanApplicationDto application)
+    {
+        await JSRuntime.InvokeVoidAsync("alert", $"View details for application {application.ApplicationNumber}");
+    }
+
+    private async Task UpdateStatus(LoanApplicationDto application)
+    {
+        await JSRuntime.InvokeVoidAsync("alert", $"Update status for application {application.ApplicationNumber}");
+    }
+}

@@ -1,0 +1,235 @@
+@using System.ComponentModel.DataAnnotations
+@using BlazorApp.Web.Components.Pages
+
+<div class="loan-step">
+    <div class="step-header mb-4">
+        <h3 class="h4 mb-2">Step 2: Income Information</h3>
+        <p class="text-muted">Please provide your employment and income details.</p>
+    </div>
+
+    <EditForm Model="@Model" OnValidSubmit="@HandleSubmit">
+        <DataAnnotationsValidator />
+        
+        <div class="row">
+            <!-- Employment Information -->
+            <div class="col-12">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Employment Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="employmentStatus" class="form-label">Employment Status *</label>
+                                <InputSelect @bind-Value="Model.EmploymentStatus" class="form-select" id="employmentStatus">
+                                    <option value="">Select employment status</option>
+                                    <option value="Employed Full-Time">Employed Full-Time</option>
+                                    <option value="Employed Part-Time">Employed Part-Time</option>
+                                    <option value="Self-Employed">Self-Employed</option>
+                                    <option value="Contractor">Contractor</option>
+                                    <option value="Retired">Retired</option>
+                                    <option value="Unemployed">Unemployed</option>
+                                    <option value="Student">Student</option>
+                                    <option value="Other">Other</option>
+                                </InputSelect>
+                                <ValidationMessage For="@(() => Model.EmploymentStatus)" class="text-danger" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="employmentDuration" class="form-label">Employment Duration</label>
+                                <div class="input-group">
+                                    <InputNumber @bind-Value="Model.EmploymentDurationMonths" 
+                                               class="form-control" 
+                                               id="employmentDuration" />
+                                    <span class="input-group-text">months</span>
+                                </div>
+                                <ValidationMessage For="@(() => Model.EmploymentDurationMonths)" class="text-danger" />
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="employerName" class="form-label">Employer Name</label>
+                                <InputText @bind-Value="Model.EmployerName" 
+                                         class="form-control" 
+                                         id="employerName"
+                                         placeholder="ABC Company Inc." />
+                                <ValidationMessage For="@(() => Model.EmployerName)" class="text-danger" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="jobTitle" class="form-label">Job Title</label>
+                                <InputText @bind-Value="Model.JobTitle" 
+                                         class="form-control" 
+                                         id="jobTitle"
+                                         placeholder="Software Engineer" />
+                                <ValidationMessage For="@(() => Model.JobTitle)" class="text-danger" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Income Information -->
+            <div class="col-12">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Income Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="monthlyGrossIncome" class="form-label">Monthly Gross Income *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <InputNumber @bind-Value="Model.MonthlyGrossIncome" 
+                                               class="form-control" 
+                                               id="monthlyGrossIncome"
+                                               placeholder="5000" />
+                                </div>
+                                <ValidationMessage For="@(() => Model.MonthlyGrossIncome)" class="text-danger" />
+                                <div class="form-text">Before taxes and deductions</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="additionalMonthlyIncome" class="form-label">Additional Monthly Income</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <InputNumber @bind-Value="Model.AdditionalMonthlyIncome" 
+                                               class="form-control" 
+                                               id="additionalMonthlyIncome"
+                                               placeholder="0" />
+                                </div>
+                                <ValidationMessage For="@(() => Model.AdditionalMonthlyIncome)" class="text-danger" />
+                                <div class="form-text">Bonuses, commissions, rental income, etc.</div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12 mb-3">
+                                <label for="additionalIncomeDescription" class="form-label">Additional Income Description</label>
+                                <InputTextArea @bind-Value="Model.AdditionalIncomeDescription" 
+                                             class="form-control" 
+                                             id="additionalIncomeDescription"
+                                             rows="2"
+                                             placeholder="Describe additional income sources (e.g., rental property, freelance work, etc.)" />
+                                <ValidationMessage For="@(() => Model.AdditionalIncomeDescription)" class="text-danger" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Monthly Expenses -->
+            <div class="col-12">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Monthly Expenses</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="monthlyHousingPayment" class="form-label">Monthly Housing Payment *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <InputNumber @bind-Value="Model.MonthlyHousingPayment" 
+                                               class="form-control" 
+                                               id="monthlyHousingPayment"
+                                               placeholder="1500" />
+                                </div>
+                                <ValidationMessage For="@(() => Model.MonthlyHousingPayment)" class="text-danger" />
+                                <div class="form-text">Rent or mortgage payment</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="otherMonthlyDebtPayments" class="form-label">Other Monthly Debt Payments</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <InputNumber @bind-Value="Model.OtherMonthlyDebtPayments" 
+                                               class="form-control" 
+                                               id="otherMonthlyDebtPayments"
+                                               placeholder="0" />
+                                </div>
+                                <ValidationMessage For="@(() => Model.OtherMonthlyDebtPayments)" class="text-danger" />
+                                <div class="form-text">Credit cards, car loans, student loans, etc.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Income Summary -->
+            <div class="col-12">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Income Summary</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4 text-center">
+                                <div class="income-summary-item">
+                                    <h6 class="text-muted mb-1">Total Monthly Income</h6>
+                                    <h4 class="text-success mb-0">$@((Model.MonthlyGrossIncome + Model.AdditionalMonthlyIncome).ToString("N0"))</h4>
+                                </div>
+                            </div>
+                            <div class="col-md-4 text-center">
+                                <div class="income-summary-item">
+                                    <h6 class="text-muted mb-1">Total Monthly Expenses</h6>
+                                    <h4 class="text-danger mb-0">$@((Model.MonthlyHousingPayment + Model.OtherMonthlyDebtPayments).ToString("N0"))</h4>
+                                </div>
+                            </div>
+                            <div class="col-md-4 text-center">
+                                <div class="income-summary-item">
+                                    <h6 class="text-muted mb-1">Debt-to-Income Ratio</h6>
+                                    @{
+                                        var totalIncome = Model.MonthlyGrossIncome + Model.AdditionalMonthlyIncome;
+                                        var totalExpenses = Model.MonthlyHousingPayment + Model.OtherMonthlyDebtPayments;
+                                        var debtToIncomeRatio = totalIncome > 0 ? (totalExpenses / totalIncome) * 100 : 0;
+                                    }
+                                    <h4 class="@(debtToIncomeRatio <= 50 ? "text-success" : "text-warning") mb-0">@debtToIncomeRatio.ToString("F1")%</h4>
+                                </div>
+                            </div>
+                        </div>
+                        @if (debtToIncomeRatio > 50)
+                        {
+                            <div class="alert alert-warning mt-3">
+                                <i class="bi bi-exclamation-triangle"></i>
+                                <strong>High Debt-to-Income Ratio:</strong> Your debt-to-income ratio is above 50%, which may affect loan approval.
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="d-flex justify-content-between">
+            <button type="button" class="btn btn-outline-secondary" @onclick="OnPrevious">
+                <i class="bi bi-arrow-left"></i> Previous
+            </button>
+            <div>
+                <button type="button" class="btn btn-outline-danger me-2" @onclick="OnCancel">
+                    <i class="bi bi-x-circle"></i> Cancel
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    Next: TILA Disclosure <i class="bi bi-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+    </EditForm>
+</div>
+
+<style>
+    .income-summary-item {
+        padding: 1rem;
+        border: 1px solid #dee2e6;
+        border-radius: 0.375rem;
+        background-color: #f8f9fa;
+    }
+</style>
+
+@code {
+    [Parameter] public LoanApplication.IncomeData Model { get; set; } = new();
+    [Parameter] public EventCallback<LoanApplication.IncomeData> OnNext { get; set; }
+    [Parameter] public EventCallback OnPrevious { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+
+    private async Task HandleSubmit()
+    {
+        await OnNext.InvokeAsync(Model);
+    }
+}
